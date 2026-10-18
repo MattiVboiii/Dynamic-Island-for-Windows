@@ -2,11 +2,11 @@
 // @id              dynamic-island-for-windows
 // @name            Dynamic Island for Windows
 // @description     A living, breathing pill overlay inspired by iPhone's Dynamic Island. Reacts to media, downloads, clipboard, battery, and more.
-// @version         1.3.1
+// @version         1.4.0
 // @author          Himanshu
 // @github          https://github.com/devcode90
 // @include         windhawk.exe
-// @compilerOptions -lole32 -loleaut32 -lshcore -ld2d1 -ldwrite -ldwmapi -lgdi32 -luser32 -lshell32 -lruntimeobject -lwindowscodecs -lavrt -lsetupapi -lwinhttp -lpdh -lwinmm
+// @compilerOptions -lole32 -loleaut32 -lshcore -ld2d1 -ldwrite -ldwmapi -lgdi32 -luser32 -lshell32 -lruntimeobject -lwindowscodecs -lavrt -lsetupapi -lwinhttp -lpdh -lwinmm -liphlpapi
 // @license         MIT
 // ==/WindhawkMod==
 
@@ -54,18 +54,20 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 - **Quick Lookup:** Press **Ctrl+Alt+Space** to open a search box right on the island. Type a word or phrase, press Enter, and get a definition or a short summary. Your clipboard text and recent searches are one click away.
 - **Lyrics Sync Offset:** Nudge lyric timing in milliseconds when lyrics feel early or late, with a separate value for Bluetooth audio output that is picked automatically from your default audio device. Set it in Mod Settings or from the right-click menu's "Lyrics sync" submenu.
 - **Typography & Clock Control:** Scale all island text independently of the island's size, choose 12- or 24-hour time, show seconds, and set a custom date pattern — including CJK forms like `yyyy年MM月dd日`.
+- **Discord Voice:** Channel name, server name, and elapsed time while you're in a Discord voice channel (status only — no mute/deafen). Connect once via Discord Local RPC (Client ID/Secret in settings). Without RPC, a Discord mic + network heuristic still shows a generic call card. Shares the island with Media (trailing) and popups like Clipboard (leading).
 
 ---
 
 ## ⚙️ Usage & Settings
 
 - **Hover & Scroll:** Hover over the island to seamlessly expand it. Use your mouse scroll wheel to swipe between the Media, Calendar, Weather, Hardware Monitor, File Tray, and Lyrics tabs.
+- **Discord Voice:** Enable **Modules → Discord Voice**, paste your Discord app **Client ID** and **Client Secret** (use the Discord account that owns the app), add redirect `http://127.0.0.1/callback` under OAuth2 → Redirects, then right-click → **Discord Voice → Connect…**. The card shows server + channel + timer. Click to focus Discord. Layout: **popup (left) → Call (middle) → Media (right)**.
 - **File Tray:** Enable the File Tray module, then drag files onto the island. It jumps to the shelf to confirm the drop. Click a row to open that file, drag a row out to drop the file into any folder or app, or press the small ✕ on a row to remove just that file. The bin button in the header clears the whole shelf.
 - **Lyrics on the Collapsed Island:** Right-click the island and tick "Show lyrics on collapsed island". This choice is remembered across restarts. Long lines pan across as they are sung.
 - **Cross-Source Media Switching:** If multiple apps are playing media at the same time, you can smoothly swap between their active playback controls directly from the island without opening the apps.
 - **Quick Lookup:** Press the hotkey (default **Ctrl+Alt+Space**, changeable in the **Shortcuts** tab) to open the search box. Type a word or phrase and press Enter. Up/Down picks a row and Esc closes it. With an empty box it suggests your clipboard text and your recent lookups. Results come from Wiktionary and Wikipedia, with dictionaryapi.dev as a backup. Nothing is sent anywhere until you press Enter, and recent lookups are kept in memory only. Turn it off under Modules > "Quick Lookup (hotkey)".
 - **Right-Click Menu:** Right-click the island to access Theme presets, Transparency settings, collapsed-island lyrics, and to pin the island open.
-- **⚠️ Right-click choices are per-session:** The right-click menu is a quick way to try things out, not a place to configure the mod. **Theme**, **shape style** (Pill / Notch / Windows 11) and **pin open** are all re-applied from your Windhawk settings whenever the mod restarts — so a reboot, a mod update, or toggling the mod off and on will discard them. Anything you want to keep, set in the **Mod Settings** tab instead. (Transparency and Expand-on-hover do persist, but the settings tab is still the reliable place for them.)
+- **Right-click overrides:** Theme, shape style (Pill / Notch / Windows 11), pin open, transparency and expand-on-hover from the right-click menu are stored in the mod's local storage and survive restarts. Changing the matching value in the **Mod Settings** tab clears that override and takes over again.
 - **Windhawk Settings:** Visit the Mod Settings tab to change the island's Position, Size Scale, Refresh Rate (Target FPS), Animation Style (Smooth/Default/Bouncy/Snappy), Animation Speed, and toggle specific modules. You can also perfectly align the island using the `Offset X` and `Offset Y` settings, and select exactly which monitor the island should appear on (including a "Follow Mouse" mode!).
 - **Notifications:** Windows must allow apps to read notifications: turn on **Settings > Privacy & security > Notifications > "Let apps access your notifications"**. Without that permission Windows denies the listener and the module stays silent. Nothing needs to be added to the process inclusion list; the island runs in its own process and reads notifications from there.
 - **Quick Hide/Show:** Right-click the island and choose "Hide Island" to collapse it completely — CPU usage drops to ~0% while hidden since the mod fully parks its render thread. Bring it back instantly with the configurable hotkey (default **Ctrl+Alt+D**, changeable in the **Shortcuts** settings tab). Because a hidden island can't be right-clicked, the hotkey is the *only* way back once hidden — if you turn the hotkey off while hidden, re-enable it (or disable the mod) from Windhawk's settings.
@@ -100,6 +102,7 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 - **[thevioletto @GitHub](https://github.com/thevioletto)**: Added custom font support, Windows Do Not Disturb integration and status alerts, improved album art color sampling, reorganized settings, and addressed various UI/media edge cases.
 - **[David Ravelo (DavidRaveloU) @GitHub](https://github.com/DavidRaveloU)**: Added selectable audio spectrum styles with a live frequency analyzer, new progress bar styles, optional track-change animations for the title, cover flip, playback controls and pill cover spin, an optional clock in the collapsed media pill, and a brightness slider flyout.
 - **[Retr0dev-jpg @GitHub](https://github.com/Retr0dev-jpg)**: Event-driven volume flyout with animated bar and default device switching, plus a calendar that follows the Windows locale for weekday initials and first day of the week (with a Monday/Sunday override).
+- **Discord Voice + three-bay layout:** Discord call card (server, channel, elapsed time via Local RPC; heuristic fallback) and coexistence of popups | Call | Media in one island.
 
 ### 🤝 Contributing
 We love community contributions! To ensure high-quality updates, please follow these rules:
@@ -404,6 +407,15 @@ We love community contributions! To ensure high-quality updates, please follow t
   - TimerModule: true
     $name: Focus Timer module
     $description: Enables a Pomodoro-style focus/break timer, startable from the island's right-click menu.
+  - DiscordVoice: true
+    $name: Discord Voice module
+    $description: Shows server name, channel name, and elapsed time while Discord is in a voice channel (status only — no mute/deafen). Requires a Discord Developer app + Connect once for channel details; without that, a Discord mic + UDP heuristic still shows a generic call card. Shares the island with Media (trailing) and popups like Clipboard (leading).
+  - DiscordClientId: ""
+    $name: Discord Application Client ID
+    $description: From https://discord.com/developers/applications. You must be logged into Discord as the account that owns this app. Under OAuth2 → Redirects, add exactly http://127.0.0.1/callback (needed for the token exchange, not shown in a browser).
+  - DiscordClientSecret: ""
+    $name: Discord Application Client Secret
+    $description: From the same Discord application (OAuth2 → Reset Secret if needed). Used only locally for rpc_token + code exchange. Never shared.
   - Clipboard: true
     $name: Clipboard module
     $description: Shows a quick preview of the text or images you just copied.
@@ -607,6 +619,8 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <winhttp.h>
 #include <pdh.h>
 #include <pdhmsg.h>
+#include <iphlpapi.h>
+#include <tlhelp32.h>
 
 #include <algorithm>
 #include <array>
@@ -677,13 +691,10 @@ constexpr UINT kClipboardImageThumbMaxDim = 160;  // longer-side cap for the cli
 // offset from the content rect it is handed, and OverlayWndProc hit-tests in
 // that same content space (see MediaContentFromClient), so both sides read the
 // constants below and cannot drift apart.
+// === Layout constants ===
 namespace MediaLayout {
     constexpr float kExpandedWidth = 380.0f;
     constexpr float kExpandedHeight = 184.0f;
-
-    // Extra width added on the right of the expanded media tab when "Lyrics in the
-    // media tab" is on. The normal 380px player is left untouched.
-    constexpr float kSideLyricsWidth = 220.0f;
 
     constexpr float kScrubberY = 114.0f;
     constexpr float kScrubMargin = 24.0f;
@@ -938,8 +949,18 @@ std::atomic<float> g_mediaHitTop{0.0f};
 std::atomic<float> g_mediaHitRight{0.0f};
 std::atomic<float> g_mediaHitBottom{0.0f};
 std::atomic<float> g_mediaHitScale{1.0f};
-std::atomic<float> g_mediaHitTrim{0.0f};  // content px of lyrics panel to the right of the player
+std::atomic<float> g_mediaHitTrim{0.0f};  // reserved (was side-lyrics trim; always 0 now)
 std::atomic<unsigned long long> g_mediaHitStamp{0};
+
+// Discord Call control hit boxes (content-space), published while DrawCall paints.
+std::atomic<unsigned> g_callHitSeq{0};
+std::atomic<float> g_callHitMuteL{0}, g_callHitMuteT{0}, g_callHitMuteR{0}, g_callHitMuteB{0};
+std::atomic<float> g_callHitDeafL{0}, g_callHitDeafT{0}, g_callHitDeafR{0}, g_callHitDeafB{0};
+std::atomic<float> g_callHitLeaveL{0}, g_callHitLeaveT{0}, g_callHitLeaveR{0}, g_callHitLeaveB{0};
+std::atomic<float> g_callHitBayL{0}, g_callHitBayT{0}, g_callHitBayR{0}, g_callHitBayB{0};
+std::atomic<float> g_callHitScale{1.0f};
+std::atomic<int> g_hoveredCallButton{-1};  // 0 mute, 1 deaf, 2 leave, -1 none
+std::atomic<bool> g_callControlsLive{false};
 
 struct MediaContentPoint {
     bool valid = false;
@@ -951,6 +972,7 @@ struct MediaContentPoint {
 
 // The conversion and hit-test helpers live further down, just after Clamp().
 
+// === Types & SharedState ===
 enum class IslandKind {
     Idle,
     Media,
@@ -964,9 +986,16 @@ enum class IslandKind {
     Device,
     Bluetooth,
     Timer,
+    Call,
     DoNotDisturb,
     Split,
     Lookup,
+};
+
+enum class CallDetectSource {
+    None,
+    Heuristic,
+    Rpc,
 };
 
 enum class BluetoothDeviceCategory {
@@ -1171,6 +1200,9 @@ struct Settings {
     // the work leading up to it.
     bool capsLock = true;
     bool timerEnabled = true;
+    bool discordVoice = true;
+    std::wstring discordClientId;
+    std::wstring discordClientSecret;
     bool hideShowHotkeyEnabled = true;
     UINT hideShowModifiers = MOD_CONTROL | MOD_ALT | MOD_NOREPEAT;
     UINT hideShowVk = 'D';
@@ -1396,6 +1428,19 @@ struct TimerSnapshot {
     double finishedExpiresAt = 0.0;
 };
 
+struct CallSnapshot {
+    bool active = false;
+    CallDetectSource source = CallDetectSource::None;
+    bool controlsEnabled = false;  // unused (status-only); kept for layout compatibility
+    bool selfMute = false;
+    bool selfDeaf = false;
+    bool compact = false;          // set by layout when a transient shares the island
+    std::wstring channelId;
+    std::wstring channelName;
+    std::wstring guildName;
+    double startedAt = 0.0;
+};
+
 enum class DeviceEventType {
     Connected,
     Disconnected,
@@ -1600,6 +1645,7 @@ struct SharedState {
     BrightnessSnapshot brightness;
     CapsLockSnapshot capsLock;
     TimerSnapshot timer;
+    CallSnapshot call;
     DeviceSnapshot device;
     BluetoothDeviceSnapshot bluetoothDevice;
     DoNotDisturbSnapshot doNotDisturb;
@@ -2283,6 +2329,53 @@ MediaContentPoint MediaPlayerZonePoint(const MediaContentPoint& pt) {
     return out;
 }
 
+// Call control hit-test in client coordinates. Returns 0 mute, 1 deafen, 2 leave,
+// 3 bay chrome (focus Discord), or -1.
+int CallControlHitTest(int clientX, int clientY) {
+    const unsigned before = g_callHitSeq.load(std::memory_order_relaxed);
+    if (before & 1u) {
+        return -1;
+    }
+    const float bayL = g_callHitBayL.load(std::memory_order_relaxed);
+    const float bayT = g_callHitBayT.load(std::memory_order_relaxed);
+    const float bayR = g_callHitBayR.load(std::memory_order_relaxed);
+    const float bayB = g_callHitBayB.load(std::memory_order_relaxed);
+    if (bayR - bayL < 2.0f || bayB - bayT < 2.0f) {
+        return -1;
+    }
+    const float scale = std::max(0.05f, g_callHitScale.load(std::memory_order_relaxed));
+    const float centerX = (bayL + bayR) * 0.5f;
+    const float centerY = (bayT + bayB) * 0.5f;
+    const float contentX = (static_cast<float>(clientX) - centerX) / scale + centerX;
+    const float contentY = (static_cast<float>(clientY) - centerY) / scale + centerY;
+
+    auto inRect = [&](float l, float t, float r, float b) {
+        return contentX >= l && contentX <= r && contentY >= t && contentY <= b && (r - l) > 1.0f;
+    };
+
+    if (g_callControlsLive.load(std::memory_order_relaxed)) {
+        if (inRect(g_callHitMuteL.load(), g_callHitMuteT.load(), g_callHitMuteR.load(),
+                   g_callHitMuteB.load())) {
+            return 0;
+        }
+        if (inRect(g_callHitDeafL.load(), g_callHitDeafT.load(), g_callHitDeafR.load(),
+                   g_callHitDeafB.load())) {
+            return 1;
+        }
+        if (inRect(g_callHitLeaveL.load(), g_callHitLeaveT.load(), g_callHitLeaveR.load(),
+                   g_callHitLeaveB.load())) {
+            return 2;
+        }
+    }
+    if (contentX >= bayL && contentX <= bayR && contentY >= bayT && contentY <= bayB) {
+        return 3;
+    }
+    if (g_callHitSeq.load(std::memory_order_relaxed) != before) {
+        return -1;
+    }
+    return -1;
+}
+
 // Returns 0 = previous, 1 = play/pause, 2 = next, or -1 for no button.
 int MediaTransportHitTest(const MediaContentPoint& rawPt) {
     const MediaContentPoint pt = MediaPlayerZonePoint(rawPt);
@@ -2561,6 +2654,37 @@ std::wstring GetStringSettingWithFallback(PCWSTR primary, PCWSTR fallback, PCWST
     return L"";
 }
 
+bool SettingBool(PCWSTR name) {
+    return Wh_GetIntSetting(name) != 0;
+}
+
+// Maps a settings dropdown string to a typed value. First matching id wins;
+// empty / unknown values fall through to `fallback`.
+template <typename T>
+T ParseEnumSetting(const std::wstring& raw,
+                   std::initializer_list<std::pair<const wchar_t*, T>> map,
+                   T fallback) {
+    for (const auto& entry : map) {
+        if (EqualsNoCase(raw, entry.first)) {
+            return entry.second;
+        }
+    }
+    return fallback;
+}
+
+template <typename T>
+T ParseEnumSettingKey(PCWSTR key,
+                      std::initializer_list<std::pair<const wchar_t*, T>> map,
+                      T fallback) {
+    return ParseEnumSetting<T>(GetStringSettingCopy(key), map, fallback);
+}
+
+void ApplyBoolSettings(Settings& next, std::initializer_list<std::pair<bool*, PCWSTR>> specs) {
+    for (const auto& spec : specs) {
+        *spec.first = SettingBool(spec.second);
+    }
+}
+
 // Dropdown string settings that store numeric seconds (AutoHideIdleSeconds,
 // MediaIdleClearSeconds, …). Only values in `allowed` are accepted so a bad
 // migration or empty key cannot invent a timeout.
@@ -2743,6 +2867,28 @@ D2D1_COLOR_F EnsureContrastAgainstBackground(D2D1_COLOR_F candidate, D2D1_COLOR_
 }
 
 // Returns true if the currently active foreground window is in full screen mode
+bool IsDiscordProcessId(DWORD pid) {
+    HANDLE proc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!proc) {
+        return false;
+    }
+    wchar_t path[MAX_PATH] = {};
+    DWORD size = ARRAYSIZE(path);
+    bool isDiscord = false;
+    if (QueryFullProcessImageNameW(proc, 0, path, &size)) {
+        std::wstring file = path;
+        const size_t slash = file.find_last_of(L"\\/");
+        std::wstring name = (slash == std::wstring::npos) ? file : file.substr(slash + 1);
+        for (auto& ch : name) {
+            ch = static_cast<wchar_t>(towlower(ch));
+        }
+        isDiscord = (name == L"discord.exe" || name == L"discordptb.exe" ||
+                     name == L"discordcanary.exe" || name == L"discorddevelopment.exe");
+    }
+    CloseHandle(proc);
+    return isDiscord;
+}
+
 bool IsForegroundFullscreen(HWND targetHwnd) {
     HWND fg = GetForegroundWindow();
     if (!fg || fg == targetHwnd || fg == GetDesktopWindow() || fg == GetShellWindow()) {
@@ -2755,6 +2901,15 @@ bool IsForegroundFullscreen(HWND targetHwnd) {
     GetClassNameW(fg, className, 256);
     if (wcscmp(className, L"WorkerW") == 0 || wcscmp(className, L"Progman") == 0 ||
         wcscmp(className, L"Shell_TrayWnd") == 0) {
+        return false;
+    }
+
+    // Maximized Discord (or any Discord window covering the monitor) is not a
+    // game/movie fullscreen session — hiding the island there made Discord Voice
+    // impossible to see, and only clicking away un-parked it.
+    DWORD fgPid = 0;
+    GetWindowThreadProcessId(fg, &fgPid);
+    if (fgPid && IsDiscordProcessId(fgPid)) {
         return false;
     }
 
@@ -2845,21 +3000,20 @@ void NotifyKeyboardThreadSettingChanged();  // forward declaration; defined with
 
 void ApplyLookupHotkey();  // forward declaration; defined with Quick Lookup
 
+// === Settings I/O ===
 void LoadSettings() {
     Settings next;
 
-    const std::wstring position = GetStringSettingCopy(L"Appearance.Position");
-    if (EqualsNoCase(position, L"top-left")) {
-        next.position = Position::TopLeft;
-    } else if (EqualsNoCase(position, L"top-right")) {
-        next.position = Position::TopRight;
-    } else if (EqualsNoCase(position, L"bottom-center")) {
-        next.position = Position::BottomCenter;
-    } else if (EqualsNoCase(position, L"bottom-left")) {
-        next.position = Position::BottomLeft;
-    } else if (EqualsNoCase(position, L"bottom-right")) {
-        next.position = Position::BottomRight;
-    }
+    next.position = ParseEnumSettingKey<Position>(
+        L"Appearance.Position",
+        {
+            {L"top-left", Position::TopLeft},
+            {L"top-right", Position::TopRight},
+            {L"bottom-center", Position::BottomCenter},
+            {L"bottom-left", Position::BottomLeft},
+            {L"bottom-right", Position::BottomRight},
+        },
+        Position::TopCenter);
 
     const std::wstring scale = GetStringSettingCopy(L"Appearance.SizeScale");
     if (!scale.empty()) {
@@ -2885,21 +3039,18 @@ void LoadSettings() {
         next.fontFamily.clear();
     }
 
-    const std::wstring accentMode = GetStringSettingCopy(L"Themes.AccentColorMode");
-    if (EqualsNoCase(accentMode, L"system")) {
-        next.accentMode = AccentMode::System;
-    } else if (EqualsNoCase(accentMode, L"custom")) {
-        next.accentMode = AccentMode::Custom;
-    }
+    next.accentMode = ParseEnumSettingKey<AccentMode>(
+        L"Themes.AccentColorMode",
+        {{L"system", AccentMode::System}, {L"custom", AccentMode::Custom}},
+        AccentMode::Auto);
 
     next.customAccent = ColorFromHex(GetStringSettingCopy(L"Themes.CustomAccentHex"), next.customAccent);
 
-    const std::wstring calAccent = GetStringSettingWithFallback(L"Themes.CalendarAccent", L"CalendarWeather.CalendarAccent", L"Modules.CalendarAccent");
-    if (EqualsNoCase(calAccent, L"system")) {
-        next.calendarAccent = CalendarAccentMode::System;
-    } else {
-        next.calendarAccent = CalendarAccentMode::Accent;
-    }
+    next.calendarAccent = ParseEnumSetting(
+        GetStringSettingWithFallback(L"Themes.CalendarAccent", L"CalendarWeather.CalendarAccent",
+                                     L"Modules.CalendarAccent"),
+        {{L"system", CalendarAccentMode::System}},
+        CalendarAccentMode::Accent);
 
     const std::wstring fpsStr = GetStringSettingWithFallback(L"Animations.TargetFPS", L"Appearance.TargetFPS");
     if (EqualsNoCase(fpsStr, L"auto") || fpsStr.empty()) {
@@ -2909,45 +3060,41 @@ void LoadSettings() {
         if (next.targetFps < 0) next.targetFps = 0;
     }
 
-    const std::wstring styleStr = GetStringSettingWithFallback(L"Animations.AnimationStyle", L"Appearance.AnimationStyle");
-    if (EqualsNoCase(styleStr, L"smooth")) {
-        next.animationStyle = AnimationStyle::Smooth;
-    } else if (EqualsNoCase(styleStr, L"bouncy")) {
-        next.animationStyle = AnimationStyle::Bouncy;
-    } else if (EqualsNoCase(styleStr, L"snappy")) {
-        next.animationStyle = AnimationStyle::Snappy;
-    } else {
-        next.animationStyle = AnimationStyle::Default;
-    }
+    next.animationStyle = ParseEnumSetting(
+        GetStringSettingWithFallback(L"Animations.AnimationStyle", L"Appearance.AnimationStyle"),
+        {
+            {L"smooth", AnimationStyle::Smooth},
+            {L"bouncy", AnimationStyle::Bouncy},
+            {L"snappy", AnimationStyle::Snappy},
+        },
+        AnimationStyle::Default);
 
-    const std::wstring progressStr = GetStringSettingCopy(L"Appearance.ProgressStyle");
-    if (EqualsNoCase(progressStr, L"wavy")) {
-        next.progressStyle = ProgressStyle::Wavy;
-    } else if (EqualsNoCase(progressStr, L"squiggle")) {
-        next.progressStyle = ProgressStyle::Squiggle;
-    } else if (EqualsNoCase(progressStr, L"bar")) {
-        next.progressStyle = ProgressStyle::Bar;
-    } else {
-        next.progressStyle = ProgressStyle::Slim;  // default
-    }
+    next.progressStyle = ParseEnumSettingKey<ProgressStyle>(
+        L"Appearance.ProgressStyle",
+        {
+            {L"wavy", ProgressStyle::Wavy},
+            {L"squiggle", ProgressStyle::Squiggle},
+            {L"bar", ProgressStyle::Bar},
+        },
+        ProgressStyle::Slim);
 
-    const std::wstring spectrumStr = GetStringSettingCopy(L"Appearance.SpectrumStyle");
-    if (EqualsNoCase(spectrumStr, L"orb")) {
-        next.spectrumStyle = SpectrumStyle::Orb;
-    } else if (EqualsNoCase(spectrumStr, L"plasma")) {
-        next.spectrumStyle = SpectrumStyle::Plasma;
-    } else if (EqualsNoCase(spectrumStr, L"led")) {
-        next.spectrumStyle = SpectrumStyle::Led;
-    } else {
-        next.spectrumStyle = SpectrumStyle::Bars;  // default
-    }
+    next.spectrumStyle = ParseEnumSettingKey<SpectrumStyle>(
+        L"Appearance.SpectrumStyle",
+        {
+            {L"orb", SpectrumStyle::Orb},
+            {L"plasma", SpectrumStyle::Plasma},
+            {L"led", SpectrumStyle::Led},
+        },
+        SpectrumStyle::Bars);
     g_spectrumBandsNeeded.store(next.spectrumStyle == SpectrumStyle::Orb ||
                                     next.spectrumStyle == SpectrumStyle::Plasma ||
                                     next.spectrumStyle == SpectrumStyle::Bars ||
                                     next.spectrumStyle == SpectrumStyle::Led,
                                 std::memory_order_relaxed);
-    next.expandedMediaAnim = Wh_GetIntSetting(L"Animations.ExpandedMediaTransitions") != 0;
-    next.pillCoverAnim = Wh_GetIntSetting(L"Animations.PillCoverSpin") != 0;
+    ApplyBoolSettings(next, {
+        {&next.expandedMediaAnim, L"Animations.ExpandedMediaTransitions"},
+        {&next.pillCoverAnim, L"Animations.PillCoverSpin"},
+    });
 
     const std::wstring speed = GetStringSettingWithFallback(L"Animations.AnimationSpeed", L"Appearance.AnimationSpeed", L"Behavior.AnimationSpeed");
     if (EqualsNoCase(speed, L"very-slow")) {
@@ -2964,27 +3111,30 @@ void LoadSettings() {
         next.animationSpeed = 1.0f;
     }
 
-    next.media = Wh_GetIntSetting(L"Modules.Media") != 0;
-    next.mediaAutoExpand = Wh_GetIntSetting(L"Modules.MediaAutoExpand") != 0;
-    next.volume = Wh_GetIntSetting(L"Modules.Volume") != 0;
+    ApplyBoolSettings(next, {
+        {&next.media, L"Modules.Media"},
+        {&next.mediaAutoExpand, L"Modules.MediaAutoExpand"},
+        {&next.volume, L"Modules.Volume"},
+        {&next.brightness, L"Modules.Brightness"},
+        {&next.clipboard, L"Modules.Clipboard"},
+        {&next.battery, L"Modules.Battery"},
+        {&next.progress, L"Modules.Progress"},
+        {&next.capsLock, L"Modules.CapsLock"},
+        {&next.timerEnabled, L"Modules.TimerModule"},
+        {&next.discordVoice, L"Modules.DiscordVoice"},
+        {&next.hideShowHotkeyEnabled, L"Shortcuts.HideShowHotkeyEnabled"},
+    });
+    next.discordClientId = GetStringSettingCopy(L"Modules.DiscordClientId");
+    next.discordClientSecret = GetStringSettingCopy(L"Modules.DiscordClientSecret");
     if (!next.volume) {
         std::lock_guard lock(g_stateMutex);
         g_state.volume.active = false;
     }
-    next.brightness = Wh_GetIntSetting(L"Modules.Brightness") != 0;
     if (!next.brightness) {
         std::lock_guard lock(g_stateMutex);
         g_state.brightness.active = false;
         g_brightnessInitialized = false;
     }
-    next.clipboard = Wh_GetIntSetting(L"Modules.Clipboard") != 0;
-
-    next.battery = Wh_GetIntSetting(L"Modules.Battery") != 0;
-    next.progress = Wh_GetIntSetting(L"Modules.Progress") != 0;
-    next.capsLock = Wh_GetIntSetting(L"Modules.CapsLock") != 0;
-    next.timerEnabled = Wh_GetIntSetting(L"Modules.TimerModule") != 0;
-
-    next.hideShowHotkeyEnabled = Wh_GetIntSetting(L"Shortcuts.HideShowHotkeyEnabled") != 0;
 
     const std::wstring hotkeyModStr = GetStringSettingCopy(L"Shortcuts.HideShowModifiers");
     if (EqualsNoCase(hotkeyModStr, L"ctrl_shift")) {
@@ -3045,32 +3195,27 @@ void LoadSettings() {
         }
     }
 
-    next.bluetoothIndicator = Wh_GetIntSetting(L"Modules.BluetoothIndicator") != 0;
-    next.bluetoothShowBattery = Wh_GetIntSetting(L"Modules.BluetoothShowBattery") != 0;
-    next.doNotDisturbIndicator = Wh_GetIntSetting(L"Modules.DoNotDisturbIndicator") != 0;
-    next.notificationRespectDnD = Wh_GetIntSetting(L"Modules.NotificationRespectDnD") != 0;
+    ApplyBoolSettings(next, {
+        {&next.bluetoothIndicator, L"Modules.BluetoothIndicator"},
+        {&next.bluetoothShowBattery, L"Modules.BluetoothShowBattery"},
+        {&next.doNotDisturbIndicator, L"Modules.DoNotDisturbIndicator"},
+        {&next.notificationRespectDnD, L"Modules.NotificationRespectDnD"},
+        {&next.materialDepth, L"Themes.MaterialDepth"},
+        {&next.dropShadow, L"Themes.DropShadow"},
+        {&next.showSeconds, L"Modules.ShowSeconds"},
+    });
 
     // ── Premium material / redesign ──────────────────────────────────────────
-    {
-        const std::wstring backdrop = GetStringSettingCopy(L"Themes.BackdropMaterial");
-        if (EqualsNoCase(backdrop, L"acrylic")) {
-            next.backdropMaterial = BackdropMaterial::Acrylic;
-        } else if (EqualsNoCase(backdrop, L"blur")) {
-            next.backdropMaterial = BackdropMaterial::Blur;
-        } else {
-            next.backdropMaterial = BackdropMaterial::None;
-        }
-    }
+    next.backdropMaterial = ParseEnumSettingKey<BackdropMaterial>(
+        L"Themes.BackdropMaterial",
+        {{L"acrylic", BackdropMaterial::Acrylic}, {L"blur", BackdropMaterial::Blur}},
+        BackdropMaterial::None);
     next.backdropTint = Clamp(Wh_GetIntSetting(L"Themes.BackdropTint") / 100.0f, 0.0f, 1.0f);
     next.backdropFillAlpha = Clamp(Wh_GetIntSetting(L"Themes.BackdropFillOpacity") / 100.0f, 0.0f, 1.0f);
-
-    next.materialDepth = Wh_GetIntSetting(L"Themes.MaterialDepth") != 0;
-    next.dropShadow = Wh_GetIntSetting(L"Themes.DropShadow") != 0;
     next.accentBloom = Clamp(Wh_GetIntSetting(L"Themes.AccentBloom") / 100.0f, 0.0f, 2.0f);
     next.textScale = Clamp(Wh_GetIntSetting(L"Themes.TextScale") / 100.0f, 0.7f, 1.6f);
 
     // ── Clock / date presentation (#61) ──────────────────────────────────────
-    next.showSeconds = Wh_GetIntSetting(L"Modules.ShowSeconds") != 0;
     const std::wstring clockMode = GetStringSettingCopy(L"Modules.ClockFormat");
     next.clockFollowSystem = clockMode.empty() || EqualsNoCase(clockMode, L"system");
     next.use24HourClock = EqualsNoCase(clockMode, L"24h");
@@ -3084,9 +3229,11 @@ void LoadSettings() {
     } else {
         next.firstDayOfWeek = -1;
     }
-    next.mediaPillClock = Wh_GetIntSetting(L"Modules.MediaPillClock") != 0;
-    next.mediaPillMeta = Wh_GetIntSetting(L"Modules.MediaPillMeta") != 0;
-    next.mediaPillProgress = Wh_GetIntSetting(L"Modules.MediaPillProgress") != 0;
+    ApplyBoolSettings(next, {
+        {&next.mediaPillClock, L"Modules.MediaPillClock"},
+        {&next.mediaPillMeta, L"Modules.MediaPillMeta"},
+        {&next.mediaPillProgress, L"Modules.MediaPillProgress"},
+    });
 
     // ── Localization (#35) ───────────────────────────────────────────────────
     {
@@ -3209,9 +3356,12 @@ void LoadSettings() {
     else next.targetMonitor = _wtoi(mon.c_str());
 
     std::wstring shapeStr = GetStringSettingCopy(L"Appearance.ShapeStyle");
-    static std::wstring s_lastConfiguredShape = L"";
-    if (!shapeStr.empty() && shapeStr != s_lastConfiguredShape) {
-        s_lastConfiguredShape = shapeStr;
+    // Persist the last Mod-Settings shape so a restart does not clear right-click
+    // overrides (in-memory statics reset to empty every process launch).
+    wchar_t lastConfiguredShape[64] = {};
+    Wh_GetStringValue(L"LastConfiguredShapeStyle", lastConfiguredShape, ARRAYSIZE(lastConfiguredShape));
+    if (!shapeStr.empty() && shapeStr != lastConfiguredShape) {
+        Wh_SetStringValue(L"LastConfiguredShapeStyle", shapeStr.c_str());
         Wh_SetIntValue(L"W11StyleOverride", -1);
         Wh_SetIntValue(L"NotchStyleOverride", -1);
     }
@@ -3312,9 +3462,10 @@ void LoadSettings() {
         }
     }
 
-    static std::wstring s_lastConfiguredPreset = L"";
-    if (!themePresetStr.empty() && themePresetStr != s_lastConfiguredPreset) {
-        s_lastConfiguredPreset = themePresetStr;
+    wchar_t lastConfiguredPreset[64] = {};
+    Wh_GetStringValue(L"LastConfiguredThemePreset", lastConfiguredPreset, ARRAYSIZE(lastConfiguredPreset));
+    if (!themePresetStr.empty() && themePresetStr != lastConfiguredPreset) {
+        Wh_SetStringValue(L"LastConfiguredThemePreset", themePresetStr.c_str());
         const int fromSettings = ThemeIndexFromId(themePresetStr);
         if (fromSettings >= 0) {
             Wh_SetIntValue(kThemeValueName, fromSettings);
@@ -3401,7 +3552,8 @@ void LoadSettings() {
     next.micDotColor = next.privacyDotsMicHex;
     next.camDotColor = next.privacyDotsCamHex;
 
-    Wh_SetIntValue(L"PinnedExpanded", 0);
+    // PinnedExpanded is owned by the right-click / click-toggle path and must
+    // survive LoadSettings / restarts (same storage as GameOverlayPinned).
 
     // Compare-then-publish under one lock so the change flags describe exactly
     // the transition we are about to commit. Two LoadSettings() calls can run
@@ -5059,6 +5211,7 @@ std::wstring ChooseMediaSourceAumid(MediaSourceTracker& tracker, const std::wstr
     return best;
 }
 
+// === Worker threads ===
 DWORD WINAPI MediaThreadProc(void*) {
     winrt::init_apartment(winrt::apartment_type::multi_threaded);
 
@@ -6507,52 +6660,9 @@ void PushAudioChunks(BYTE* data, UINT32 frames, WAVEFORMATEX* format) {
     }
 }
 
-// --- Weather Fetching Helpers ---
-std::string HttpGet(const wchar_t* host, const wchar_t* path, bool https = true) {
-    std::string response;
-    HINTERNET hSession = WinHttpOpen(L"DynamicIsland/1.0", WINHTTP_ACCESS_TYPE_DEFAULT_PROXY, WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
-    if (!hSession) {
-        Wh_Log(L"Weather HttpGet: WinHttpOpen failed with error %lu", GetLastError());
-        return response;
-    }
-
-    HINTERNET hConnect = WinHttpConnect(hSession, host, https ? INTERNET_DEFAULT_HTTPS_PORT : INTERNET_DEFAULT_HTTP_PORT, 0);
-    if (hConnect) {
-        HINTERNET hRequest = WinHttpOpenRequest(hConnect, L"GET", path, nullptr, WINHTTP_NO_REFERER, WINHTTP_DEFAULT_ACCEPT_TYPES, https ? WINHTTP_FLAG_SECURE : 0);
-        if (hRequest) {
-            if (WinHttpSendRequest(hRequest, WINHTTP_NO_ADDITIONAL_HEADERS, 0, WINHTTP_NO_REQUEST_DATA, 0, 0, 0) &&
-                WinHttpReceiveResponse(hRequest, nullptr)) {
-                DWORD size = 0;
-                DWORD downloaded = 0;
-                do {
-                    if (WinHttpQueryDataAvailable(hRequest, &size) && size > 0) {
-                        std::vector<char> buffer(size + 1);
-                        if (WinHttpReadData(hRequest, buffer.data(), size, &downloaded)) {
-                            buffer[downloaded] = '\0';
-                            response.append(buffer.data());
-                        } else {
-                            Wh_Log(L"Weather HttpGet: WinHttpReadData failed with error %lu", GetLastError());
-                        }
-                    }
-                } while (size > 0);
-            } else {
-                Wh_Log(L"Weather HttpGet: WinHttpSendRequest/ReceiveResponse failed with error %lu", GetLastError());
-            }
-            WinHttpCloseHandle(hRequest);
-        } else {
-            Wh_Log(L"Weather HttpGet: WinHttpOpenRequest failed with error %lu", GetLastError());
-        }
-        WinHttpCloseHandle(hConnect);
-    } else {
-        Wh_Log(L"Weather HttpGet: WinHttpConnect failed with error %lu", GetLastError());
-    }
-    WinHttpCloseHandle(hSession);
-    return response;
-}
-
-// HTTP GET that distinguishes "the server answered" from "the transport failed".
-// HttpGet() above returns an empty string for both, which is why a lyrics cache
-// cannot be built on it: a dropped connection would look like "no lyrics".
+// === Network (HttpGetEx) ===
+// Distinguishes "the server answered" from "the transport failed" so a dropped
+// connection is never mistaken for an empty/404 body (critical for lyrics cache).
 struct HttpResult {
     bool ok = false;     // headers received AND the body was read to the end
     DWORD status = 0;    // HTTP status, valid only when ok
@@ -6706,15 +6816,18 @@ DWORD WINAPI WeatherThreadProc(void*) {
         }
 
         Wh_Log(L"Weather: Requesting weather from wttr.in/host: wttr.in, path: %s", url.c_str());
-        std::string wRes = HttpGet(L"wttr.in", url.c_str(), true);
-        if (wRes.empty()) {
-            Wh_Log(L"Weather: HTTPS request failed, retrying over plain HTTP...");
-            wRes = HttpGet(L"wttr.in", url.c_str(), false);
+        constexpr const wchar_t* kWeatherUserAgent = L"DynamicIsland/1.0";
+        HttpResult weatherHttp = HttpGetEx(L"wttr.in", url.c_str(), true, kWeatherUserAgent);
+        if (!weatherHttp.ok || weatherHttp.status != 200 || weatherHttp.body.empty()) {
+            Wh_Log(L"Weather: HTTPS request failed (ok=%d status=%lu), retrying over plain HTTP...",
+                   weatherHttp.ok ? 1 : 0, weatherHttp.status);
+            weatherHttp = HttpGetEx(L"wttr.in", url.c_str(), false, kWeatherUserAgent);
         }
+        const std::string& wRes = weatherHttp.body;
 
         bool weatherCommitted = false;
 
-        if (!wRes.empty()) {
+        if (weatherHttp.ok && weatherHttp.status == 200 && !wRes.empty()) {
             Wh_Log(L"Weather: Received response from wttr.in (size: %zu bytes)", wRes.size());
             float temp = 0.0f;
             int code = 0;
@@ -6963,15 +7076,32 @@ std::wstring JsonStringUnescape(const std::string& raw) {
     return wout;
 }
 
-// Finds "fieldName":"....." in a JSON blob and returns the raw (still
-// escaped) contents between the quotes. Returns false if missing or null.
+// Finds "fieldName": "....." in a JSON blob (optional whitespace around ':')
+// and returns the raw (still escaped) contents between the quotes.
+// Returns false if missing, null, or not a string.
 bool ExtractJsonStringField(const std::string& json, const char* fieldKey, std::string* outRaw) {
-    const std::string key = std::string("\"") + fieldKey + "\":\"";
+    const std::string key = std::string("\"") + fieldKey + "\"";
     size_t pos = json.find(key);
     if (pos == std::string::npos) {
         return false;
     }
     pos += key.size();
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\r' ||
+                                 json[pos] == '\n')) {
+        ++pos;
+    }
+    if (pos >= json.size() || json[pos] != ':') {
+        return false;
+    }
+    ++pos;
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\r' ||
+                                 json[pos] == '\n')) {
+        ++pos;
+    }
+    if (pos >= json.size() || json[pos] != '"') {
+        return false;
+    }
+    ++pos;
 
     std::string result;
     bool escaped = false;
@@ -9015,14 +9145,918 @@ void UpdateProgressSnapshot() {
 void UpdatePrivacyIndicators() {
     std::wstring micApp;
     std::wstring camApp;
-    const bool mic = (g_settings.privacyDots && g_settings.privacyDotsMic) ? IsMicrophoneActive(&micApp) : false;
+    // Mic app name is needed by Discord Voice even when privacy dots are off.
+    const bool mic = IsMicrophoneActive(&micApp);
     const bool cam = (g_settings.privacyDots && g_settings.privacyDotsCam) ? IsCameraActive(&camApp) : false;
+    const bool showMic = g_settings.privacyDots && g_settings.privacyDotsMic && mic;
+    const bool showCam = cam;
     std::lock_guard lock(g_stateMutex);
-    g_state.system.micActive = mic;
-    g_state.system.cameraActive = cam;
+    g_state.system.micActive = showMic;
+    g_state.system.cameraActive = showCam;
     g_state.system.micApp = micApp;
     g_state.system.cameraApp = camApp;
 }
+
+// ── Discord Voice (Local RPC + mic/UDP heuristic) ────────────────────────────
+
+std::atomic<bool> g_discordRpcWantConnect{false};
+std::atomic<bool> g_discordRpcConnected{false};
+std::atomic<bool> g_discordRpcAuthenticated{false};
+std::atomic<bool> g_discordRpcStop{false};
+HANDLE g_discordRpcThread = nullptr;
+
+enum class DiscordRpcCommand : int {
+    None = 0,
+    Authorize = 1,
+    Disconnect = 2,
+};
+std::atomic<int> g_discordRpcCommand{0};
+
+std::wstring DiscordRpcDir() {
+    wchar_t base[MAX_PATH] = {};
+    const DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", base, ARRAYSIZE(base));
+    if (n == 0 || n >= ARRAYSIZE(base)) {
+        return {};
+    }
+    return std::wstring(base) + L"\\DynamicIslandForWindows";
+}
+
+std::wstring DiscordTokenPath() {
+    const std::wstring dir = DiscordRpcDir();
+    return dir.empty() ? std::wstring{} : dir + L"\\discord-rpc.json";
+}
+
+bool ReadUtf8File(const std::wstring& path, std::string* out) {
+    HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
+                           OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+    LARGE_INTEGER size{};
+    if (!GetFileSizeEx(h, &size) || size.QuadPart <= 0 || size.QuadPart > 1'000'000) {
+        CloseHandle(h);
+        return false;
+    }
+    std::string buf(static_cast<size_t>(size.QuadPart), '\0');
+    DWORD read = 0;
+    const BOOL ok = ReadFile(h, buf.data(), static_cast<DWORD>(buf.size()), &read, nullptr);
+    CloseHandle(h);
+    if (!ok) {
+        return false;
+    }
+    buf.resize(read);
+    *out = std::move(buf);
+    return true;
+}
+
+bool WriteUtf8File(const std::wstring& path, const std::string& body) {
+    const std::wstring dir = DiscordRpcDir();
+    if (!dir.empty()) {
+        CreateDirectoryW(dir.c_str(), nullptr);
+    }
+    HANDLE h = CreateFileW(path.c_str(), GENERIC_WRITE, 0, nullptr, CREATE_ALWAYS,
+                           FILE_ATTRIBUTE_NORMAL, nullptr);
+    if (h == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+    DWORD written = 0;
+    const BOOL ok = WriteFile(h, body.data(), static_cast<DWORD>(body.size()), &written, nullptr);
+    CloseHandle(h);
+    return ok != FALSE;
+}
+
+bool LoadDiscordAccessToken(std::string* token) {
+    std::string body;
+    if (!ReadUtf8File(DiscordTokenPath(), &body)) {
+        return false;
+    }
+    std::string raw;
+    if (!ExtractJsonStringField(body, "access_token", &raw) || raw.empty()) {
+        return false;
+    }
+    // Access tokens are ASCII; strip simple JSON escapes from the raw field.
+    *token = raw;
+    for (size_t i = 0; i < token->size();) {
+        if ((*token)[i] == '\\' && i + 1 < token->size()) {
+            token->erase(i, 1);
+        } else {
+            ++i;
+        }
+    }
+    return !token->empty();
+}
+
+void SaveDiscordAccessToken(const std::string& token) {
+    std::string body = "{\"access_token\":\"";
+    for (char c : token) {
+        if (c == '"' || c == '\\') {
+            body.push_back('\\');
+        }
+        body.push_back(c);
+    }
+    body += "\"}";
+    WriteUtf8File(DiscordTokenPath(), body);
+}
+
+void ClearDiscordAccessToken() {
+    DeleteFileW(DiscordTokenPath().c_str());
+}
+
+// Discord helpers reuse LyricsCache::WideToUtf8 / Utf8ToWide via local aliases.
+static std::string DiscordWideToUtf8(const std::wstring& w) { return LyricsCache::WideToUtf8(w); }
+static std::wstring DiscordUtf8ToWide(const std::string& s) { return LyricsCache::Utf8ToWide(s); }
+
+bool HttpPostForm(const wchar_t* host, const wchar_t* path, const std::string& body,
+                  std::string* response) {
+    HINTERNET session = WinHttpOpen(L"DynamicIslandForWindows/1.4.0",
+                                    WINHTTP_ACCESS_TYPE_DEFAULT_PROXY,
+                                    WINHTTP_NO_PROXY_NAME, WINHTTP_NO_PROXY_BYPASS, 0);
+    if (!session) {
+        return false;
+    }
+    HINTERNET connect = WinHttpConnect(session, host, INTERNET_DEFAULT_HTTPS_PORT, 0);
+    if (!connect) {
+        WinHttpCloseHandle(session);
+        return false;
+    }
+    HINTERNET request = WinHttpOpenRequest(connect, L"POST", path, nullptr, WINHTTP_NO_REFERER,
+                                           WINHTTP_DEFAULT_ACCEPT_TYPES, WINHTTP_FLAG_SECURE);
+    if (!request) {
+        WinHttpCloseHandle(connect);
+        WinHttpCloseHandle(session);
+        return false;
+    }
+    const wchar_t* headers = L"Content-Type: application/x-www-form-urlencoded\r\n";
+    BOOL ok = WinHttpSendRequest(request, headers, static_cast<DWORD>(-1L),
+                                 (LPVOID)body.data(), static_cast<DWORD>(body.size()),
+                                 static_cast<DWORD>(body.size()), 0);
+    if (ok) {
+        ok = WinHttpReceiveResponse(request, nullptr);
+    }
+    if (ok) {
+        response->clear();
+        for (;;) {
+            DWORD avail = 0;
+            if (!WinHttpQueryDataAvailable(request, &avail) || avail == 0) {
+                break;
+            }
+            std::string chunk(avail, '\0');
+            DWORD read = 0;
+            if (!WinHttpReadData(request, chunk.data(), avail, &read) || read == 0) {
+                break;
+            }
+            chunk.resize(read);
+            response->append(chunk);
+        }
+    }
+    WinHttpCloseHandle(request);
+    WinHttpCloseHandle(connect);
+    WinHttpCloseHandle(session);
+    return ok != FALSE && !response->empty();
+}
+
+// Used only on the HTTP token exchange — never in the RPC AUTHORIZE command
+// (Discord rejects redirect_uri there: "cannot be used in the RPC OAuth2 flow").
+// Still register this exact URI under the app's OAuth2 → Redirects.
+static constexpr wchar_t kDiscordRedirectUri[] = L"http://127.0.0.1/callback";
+
+// One-shot token for local AUTHORIZE (Discord docs: POST /oauth2/token/rpc).
+bool FetchDiscordRpcToken(const std::wstring& clientId, const std::wstring& clientSecret,
+                          std::string* rpcToken) {
+    const std::string body = "client_id=" + UrlEncodeComponent(clientId) +
+                             "&client_secret=" + UrlEncodeComponent(clientSecret);
+    std::string response;
+    if (!HttpPostForm(L"discord.com", L"/api/oauth2/token/rpc", body, &response)) {
+        Wh_Log(L"Discord RPC: /oauth2/token/rpc request failed");
+        return false;
+    }
+    std::string raw;
+    if (!ExtractJsonStringField(response, "rpc_token", &raw) || raw.empty()) {
+        Wh_Log(L"Discord RPC: no rpc_token in /oauth2/token/rpc response — %S",
+               response.c_str());
+        return false;
+    }
+    *rpcToken = raw;
+    return true;
+}
+
+bool ExchangeDiscordAuthCode(const std::string& code, const std::wstring& clientId,
+                             const std::wstring& clientSecret, std::string* accessToken) {
+    const std::string encoded =
+        "client_id=" + UrlEncodeComponent(clientId) +
+        "&client_secret=" + UrlEncodeComponent(clientSecret) +
+        "&grant_type=authorization_code&code=" + UrlEncodeComponent(DiscordUtf8ToWide(code)) +
+        "&redirect_uri=" + UrlEncodeComponent(kDiscordRedirectUri);
+    std::string response;
+    if (!HttpPostForm(L"discord.com", L"/api/oauth2/token", encoded, &response)) {
+        Wh_Log(L"Discord RPC: token exchange failed");
+        return false;
+    }
+    std::string raw;
+    if (!ExtractJsonStringField(response, "access_token", &raw) || raw.empty()) {
+        // Never log the body — it may contain access_token / refresh_token.
+        Wh_Log(L"Discord RPC: no access_token in exchange response (%zu bytes)",
+               response.size());
+        return false;
+    }
+    *accessToken = raw;
+    SaveDiscordAccessToken(raw);
+    Wh_Log(L"Discord RPC: token exchange ok");
+    return true;
+}
+
+bool IsDiscordExeName(const std::wstring& nameLower) {
+    return nameLower == L"discord.exe" || nameLower == L"discordptb.exe" ||
+           nameLower == L"discordcanary.exe" || nameLower == L"discorddevelopment.exe";
+}
+
+bool FindDiscordProcessIds(std::vector<DWORD>* pids) {
+    pids->clear();
+    HANDLE snap = CreateToolhelp32Snapshot(TH32CS_SNAPPROCESS, 0);
+    if (snap == INVALID_HANDLE_VALUE) {
+        return false;
+    }
+    PROCESSENTRY32W pe{};
+    pe.dwSize = sizeof(pe);
+    if (Process32FirstW(snap, &pe)) {
+        do {
+            std::wstring name = pe.szExeFile;
+            for (auto& ch : name) {
+                ch = static_cast<wchar_t>(towlower(ch));
+            }
+            if (IsDiscordExeName(name)) {
+                pids->push_back(pe.th32ProcessID);
+            }
+        } while (Process32NextW(snap, &pe));
+    }
+    CloseHandle(snap);
+    return !pids->empty();
+}
+
+bool ProcessHasNonLoopbackUdp(DWORD pid) {
+    DWORD size = 0;
+    GetExtendedUdpTable(nullptr, &size, FALSE, AF_INET, UDP_TABLE_OWNER_PID, 0);
+    if (size > 0) {
+        std::vector<unsigned char> buf(size);
+        auto* table = reinterpret_cast<MIB_UDPTABLE_OWNER_PID*>(buf.data());
+        if (GetExtendedUdpTable(table, &size, FALSE, AF_INET, UDP_TABLE_OWNER_PID, 0) ==
+            NO_ERROR) {
+            for (DWORD i = 0; i < table->dwNumEntries; ++i) {
+                if (table->table[i].dwOwningPid != pid) {
+                    continue;
+                }
+                // dwLocalAddr is network byte order; 127.0.0.1 == 0x0100007f on LE.
+                const DWORD addr = table->table[i].dwLocalAddr;
+                if (addr != 0x0100007Fu) {
+                    return true;
+                }
+            }
+        }
+    }
+
+#ifndef AF_INET6
+#define AF_INET6 23
+#endif
+    size = 0;
+    GetExtendedUdpTable(nullptr, &size, FALSE, AF_INET6, UDP_TABLE_OWNER_PID, 0);
+    if (size > 0) {
+        std::vector<unsigned char> buf(size);
+        auto* table = reinterpret_cast<MIB_UDP6TABLE_OWNER_PID*>(buf.data());
+        if (GetExtendedUdpTable(table, &size, FALSE, AF_INET6, UDP_TABLE_OWNER_PID, 0) ==
+            NO_ERROR) {
+            for (DWORD i = 0; i < table->dwNumEntries; ++i) {
+                if (table->table[i].dwOwningPid != pid) {
+                    continue;
+                }
+                const UCHAR* a = table->table[i].ucLocalAddr;
+                bool loopback = true;
+                for (int b = 0; b < 15; ++b) {
+                    if (a[b] != 0) {
+                        loopback = false;
+                        break;
+                    }
+                }
+                if (loopback && a[15] == 1) {
+                    continue;
+                }
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool DiscordHeuristicVoiceActive(std::wstring* micAppName) {
+    std::wstring app;
+    if (!IsMicrophoneActive(&app)) {
+        return false;
+    }
+    std::wstring lower = app;
+    for (auto& ch : lower) {
+        ch = static_cast<wchar_t>(towlower(ch));
+    }
+    if (lower.find(L"discord") == std::wstring::npos) {
+        return false;
+    }
+    std::vector<DWORD> pids;
+    if (!FindDiscordProcessIds(&pids)) {
+        return false;
+    }
+    for (DWORD pid : pids) {
+        if (ProcessHasNonLoopbackUdp(pid)) {
+            if (micAppName) {
+                *micAppName = app.empty() ? L"Discord" : app;
+            }
+            return true;
+        }
+    }
+    return false;
+}
+
+struct DiscordIpc {
+    HANDLE pipe = INVALID_HANDLE_VALUE;
+
+    bool Connect() {
+        Close();
+        for (int i = 0; i < 10; ++i) {
+            wchar_t name[64];
+            swprintf_s(name, L"\\\\.\\pipe\\discord-ipc-%d", i);
+            pipe = CreateFileW(name, GENERIC_READ | GENERIC_WRITE, 0, nullptr, OPEN_EXISTING, 0,
+                               nullptr);
+            if (pipe != INVALID_HANDLE_VALUE) {
+                DWORD mode = PIPE_READMODE_BYTE;
+                SetNamedPipeHandleState(pipe, &mode, nullptr, nullptr);
+                return true;
+            }
+        }
+        return false;
+    }
+
+    void Close() {
+        if (pipe != INVALID_HANDLE_VALUE) {
+            CloseHandle(pipe);
+            pipe = INVALID_HANDLE_VALUE;
+        }
+    }
+
+    bool WriteFrame(uint32_t opcode, const std::string& json) {
+        if (pipe == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+        uint32_t header[2] = {opcode, static_cast<uint32_t>(json.size())};
+        DWORD written = 0;
+        if (!WriteFile(pipe, header, sizeof(header), &written, nullptr) ||
+            written != sizeof(header)) {
+            return false;
+        }
+        if (json.empty()) {
+            return true;
+        }
+        return WriteFile(pipe, json.data(), static_cast<DWORD>(json.size()), &written, nullptr) &&
+               written == json.size();
+    }
+
+    bool ReadFrame(uint32_t* opcode, std::string* json) {
+        if (pipe == INVALID_HANDLE_VALUE) {
+            return false;
+        }
+        uint32_t header[2] = {};
+        DWORD read = 0;
+        if (!ReadFile(pipe, header, sizeof(header), &read, nullptr) || read != sizeof(header)) {
+            return false;
+        }
+        *opcode = header[0];
+        const uint32_t len = header[1];
+        if (len > 8 * 1024 * 1024) {
+            return false;
+        }
+        json->assign(len, '\0');
+        size_t got = 0;
+        while (got < len) {
+            if (!ReadFile(pipe, json->data() + got, static_cast<DWORD>(len - got), &read,
+                          nullptr) ||
+                read == 0) {
+                return false;
+            }
+            got += read;
+        }
+        return true;
+    }
+};
+
+std::string NewNonce() {
+    GUID g{};
+    CoCreateGuid(&g);
+    char buf[64];
+    sprintf_s(buf, "%08lX-%04X-%04X-%02X%02X-%02X%02X%02X%02X%02X%02X",
+              static_cast<unsigned long>(g.Data1), g.Data2, g.Data3, g.Data4[0], g.Data4[1],
+              g.Data4[2], g.Data4[3], g.Data4[4], g.Data4[5], g.Data4[6], g.Data4[7]);
+    return buf;
+}
+
+void ApplyDiscordVoiceChannelJson(const std::string& dataJson, bool connected) {
+    std::lock_guard lock(g_stateMutex);
+    if (!connected || dataJson.empty() || dataJson == "null") {
+        if (g_state.call.source == CallDetectSource::Rpc) {
+            g_state.call.active = false;
+            g_state.call.source = CallDetectSource::None;
+            g_state.call.controlsEnabled = false;
+            g_state.call.channelId.clear();
+            g_state.call.channelName.clear();
+            g_state.call.guildName.clear();
+        }
+        return;
+    }
+    std::string idRaw, nameRaw, guildIdRaw;
+    ExtractJsonStringField(dataJson, "id", &idRaw);
+    ExtractJsonStringField(dataJson, "name", &nameRaw);
+    ExtractJsonStringField(dataJson, "guild_id", &guildIdRaw);
+    const bool wasActive = g_state.call.active && g_state.call.source == CallDetectSource::Rpc;
+    const std::wstring prevChannelId = g_state.call.channelId;
+    g_state.call.active = true;
+    g_state.call.source = CallDetectSource::Rpc;
+    g_state.call.controlsEnabled = false;  // status-only: channel/server + timer
+    g_state.call.channelId = DiscordUtf8ToWide(idRaw);
+    g_state.call.channelName = JsonStringUnescape(nameRaw);
+    if (g_state.call.channelName.empty() && !nameRaw.empty()) {
+        g_state.call.channelName = DiscordUtf8ToWide(nameRaw);
+    }
+    if (g_state.call.channelName.empty()) {
+        g_state.call.channelName = L"Voice channel";
+    }
+    if (g_state.call.channelId != prevChannelId) {
+        g_state.call.guildName.clear();
+    }
+    if (!wasActive) {
+        g_state.call.startedAt = NowSeconds();
+    }
+}
+
+void ApplyDiscordGuildJson(const std::string& dataJson) {
+    std::string nameRaw;
+    if (!ExtractJsonStringField(dataJson, "name", &nameRaw) || nameRaw.empty()) {
+        return;
+    }
+    std::wstring name = JsonStringUnescape(nameRaw);
+    if (name.empty()) {
+        name = DiscordUtf8ToWide(nameRaw);
+    }
+    std::lock_guard lock(g_stateMutex);
+    if (g_state.call.source == CallDetectSource::Rpc && g_state.call.active) {
+        g_state.call.guildName = std::move(name);
+    }
+}
+
+DWORD WINAPI DiscordRpcThreadProc(void*) {
+    CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+    DiscordIpc ipc;
+    std::string accessToken;
+    LoadDiscordAccessToken(&accessToken);
+    double nextPoll = 0.0;
+    bool subscribed = false;
+    // One-shot authorize: only fire AUTHORIZE once per Connect click, never every loop.
+    bool authorizePending = false;
+    bool authenticateAttempted = false;
+
+    auto ensurePipe = [&](const Settings& settings) -> bool {
+        if (ipc.pipe != INVALID_HANDLE_VALUE) {
+            return true;
+        }
+        if (!ipc.Connect()) {
+            return false;
+        }
+        g_discordRpcConnected.store(true);
+        const std::string clientId = DiscordWideToUtf8(settings.discordClientId);
+        if (clientId.empty()) {
+            Wh_Log(L"Discord RPC: Client ID missing in settings");
+            ipc.Close();
+            g_discordRpcConnected.store(false);
+            return false;
+        }
+        const std::string handshake =
+            std::string("{\"v\":1,\"client_id\":\"") + clientId + "\"}";
+        if (!ipc.WriteFrame(0, handshake)) {
+            ipc.Close();
+            g_discordRpcConnected.store(false);
+            return false;
+        }
+        uint32_t op = 0;
+        std::string frame;
+        if (!ipc.ReadFrame(&op, &frame)) {
+            ipc.Close();
+            g_discordRpcConnected.store(false);
+            return false;
+        }
+        return true;
+    };
+
+    while (!g_discordRpcStop.load(std::memory_order_relaxed)) {
+        const int cmd = g_discordRpcCommand.exchange(0);
+        if (cmd == static_cast<int>(DiscordRpcCommand::Disconnect)) {
+            ipc.Close();
+            g_discordRpcConnected.store(false);
+            g_discordRpcAuthenticated.store(false);
+            subscribed = false;
+            authorizePending = false;
+            authenticateAttempted = false;
+            accessToken.clear();
+            g_discordRpcWantConnect.store(false);
+            {
+                std::lock_guard lock(g_stateMutex);
+                if (g_state.call.source == CallDetectSource::Rpc) {
+                    g_state.call = CallSnapshot{};
+                }
+            }
+        }
+
+        if (cmd == static_cast<int>(DiscordRpcCommand::Authorize)) {
+            // Fresh Connect click: allow exactly one AUTHORIZE attempt.
+            authorizePending = true;
+            authenticateAttempted = false;
+            g_discordRpcWantConnect.store(false);
+        }
+
+        Settings settings = GetSettingsCopy();
+        if (!settings.discordVoice) {
+            Sleep(500);
+            continue;
+        }
+
+        const bool wantSession =
+            authorizePending || !accessToken.empty() ||
+            g_discordRpcAuthenticated.load(std::memory_order_relaxed);
+        if (!wantSession) {
+            Sleep(400);
+            continue;
+        }
+
+        if (!ensurePipe(settings)) {
+            Sleep(1000);
+            continue;
+        }
+
+        // One AUTHORIZE per Connect click. Wait for that response (or ERROR) before
+        // doing anything else — never re-send while Discord's modal is open.
+        if (!g_discordRpcAuthenticated.load(std::memory_order_relaxed) &&
+            accessToken.empty() && authorizePending) {
+            authorizePending = false;
+            if (settings.discordClientId.empty() || settings.discordClientSecret.empty()) {
+                Wh_Log(L"Discord RPC: Client ID and Client Secret are both required to connect");
+            } else {
+                // RPC AUTHORIZE must NOT include redirect_uri. Register
+                // http://127.0.0.1/callback on the app for the later token exchange.
+                // Prefer Discord's one-shot rpc_token (local apps / app owner).
+                std::string rpcToken;
+                const bool haveRpcToken =
+                    FetchDiscordRpcToken(settings.discordClientId, settings.discordClientSecret,
+                                         &rpcToken);
+                if (haveRpcToken) {
+                    Wh_Log(L"Discord RPC: got rpc_token, sending AUTHORIZE…");
+                } else {
+                    Wh_Log(L"Discord RPC: no rpc_token (ok if you're the app owner) — "
+                           L"sending AUTHORIZE for in-client approval…");
+                }
+
+                const std::string nonce = NewNonce();
+                std::string authz = std::string("{\"cmd\":\"AUTHORIZE\",\"args\":{\"client_id\":\"") +
+                                    DiscordWideToUtf8(settings.discordClientId) +
+                                    "\",\"scopes\":[\"rpc\",\"rpc.voice.read\",\"identify\"]";
+                if (haveRpcToken) {
+                    authz += ",\"rpc_token\":\"";
+                    authz += rpcToken;
+                    authz += "\"";
+                }
+                authz += "},\"nonce\":\"";
+                authz += nonce;
+                authz += "\"}";
+
+                if (ipc.WriteFrame(1, authz)) {
+                    bool gotReply = false;
+                    for (int attempt = 0; attempt < 120 && !g_discordRpcStop.load(); ++attempt) {
+                        // Up to ~60s for the user to click Authorize in Discord.
+                        DWORD avail = 0;
+                        if (!PeekNamedPipe(ipc.pipe, nullptr, 0, nullptr, &avail, nullptr) ||
+                            avail < 8) {
+                            Sleep(500);
+                            continue;
+                        }
+                        uint32_t op = 0;
+                        std::string frame;
+                        if (!ipc.ReadFrame(&op, &frame)) {
+                            ipc.Close();
+                            g_discordRpcConnected.store(false);
+                            break;
+                        }
+                        if (frame.find("\"cmd\":\"AUTHORIZE\"") == std::string::npos &&
+                            frame.find(nonce) == std::string::npos) {
+                            continue;  // unrelated dispatch; keep waiting
+                        }
+                        gotReply = true;
+                        if (frame.find("\"evt\":\"ERROR\"") != std::string::npos) {
+                            Wh_Log(L"Discord RPC: AUTHORIZE denied or failed — %S",
+                                   frame.c_str());
+                            Wh_Log(L"Discord RPC: use the Discord account that owns the "
+                                   L"Developer app, register redirect %s under OAuth2 → "
+                                   L"Redirects, then Connect again.",
+                                   kDiscordRedirectUri);
+                            break;
+                        }
+                        std::string code;
+                        ExtractJsonStringField(frame, "code", &code);
+                        if (!code.empty()) {
+                            if (!ExchangeDiscordAuthCode(code, settings.discordClientId,
+                                                         settings.discordClientSecret,
+                                                         &accessToken)) {
+                                Wh_Log(L"Discord RPC: token exchange failed");
+                            }
+                        } else {
+                            Wh_Log(L"Discord RPC: AUTHORIZE reply had no code");
+                        }
+                        break;
+                    }
+                    if (!gotReply) {
+                        Wh_Log(L"Discord RPC: AUTHORIZE timed out waiting for Discord");
+                    }
+                }
+            }
+        }
+
+        if (!g_discordRpcAuthenticated.load(std::memory_order_relaxed) &&
+            !accessToken.empty() && !authenticateAttempted) {
+            authenticateAttempted = true;
+            const std::string nonce = NewNonce();
+            const std::string authn =
+                std::string("{\"cmd\":\"AUTHENTICATE\",\"args\":{\"access_token\":\"") +
+                accessToken + "\"},\"nonce\":\"" + nonce + "\"}";
+            ipc.WriteFrame(1, authn);
+            uint32_t op = 0;
+            std::string frame;
+            if (ipc.ReadFrame(&op, &frame) && frame.find("\"evt\":\"ERROR\"") == std::string::npos &&
+                frame.find("\"cmd\":\"AUTHENTICATE\"") != std::string::npos) {
+                g_discordRpcAuthenticated.store(true);
+                subscribed = false;
+                Wh_Log(L"Discord RPC: authenticated");
+            } else {
+                Wh_Log(L"Discord RPC: AUTHENTICATE failed; clearing token");
+                accessToken.clear();
+                ClearDiscordAccessToken();
+                g_discordRpcAuthenticated.store(false);
+            }
+        }
+
+        if (g_discordRpcAuthenticated.load(std::memory_order_relaxed) && !subscribed) {
+            auto sub = [&](const char* evt) {
+                const std::string nonce = NewNonce();
+                const std::string msg =
+                    std::string("{\"cmd\":\"SUBSCRIBE\",\"args\":{},\"evt\":\"") + evt +
+                    "\",\"nonce\":\"" + nonce + "\"}";
+                ipc.WriteFrame(1, msg);
+                uint32_t op = 0;
+                std::string frame;
+                ipc.ReadFrame(&op, &frame);
+            };
+            sub("VOICE_CHANNEL_SELECT");
+            sub("VOICE_CONNECTION_STATUS");
+            subscribed = true;
+            nextPoll = 0.0;
+        }
+
+        const double now = NowSeconds();
+        if (g_discordRpcAuthenticated.load(std::memory_order_relaxed) && now >= nextPoll) {
+            nextPoll = now + 2.0;
+            const std::string nonce = NewNonce();
+            ipc.WriteFrame(1, std::string("{\"cmd\":\"GET_SELECTED_VOICE_CHANNEL\",\"args\":{},"
+                                          "\"nonce\":\"") +
+                                  nonce + "\"}");
+        }
+
+        // Drain readable frames with a short peek via PeekNamedPipe
+        for (int i = 0; i < 8; ++i) {
+            DWORD avail = 0;
+            if (ipc.pipe == INVALID_HANDLE_VALUE ||
+                !PeekNamedPipe(ipc.pipe, nullptr, 0, nullptr, &avail, nullptr) || avail < 8) {
+                break;
+            }
+            uint32_t op = 0;
+            std::string frame;
+            if (!ipc.ReadFrame(&op, &frame)) {
+                ipc.Close();
+                g_discordRpcConnected.store(false);
+                g_discordRpcAuthenticated.store(false);
+                subscribed = false;
+                break;
+            }
+            if (frame.find("\"cmd\":\"GET_SELECTED_VOICE_CHANNEL\"") != std::string::npos ||
+                frame.find("\"evt\":\"VOICE_CHANNEL_SELECT\"") != std::string::npos) {
+                const size_t dataPos = frame.find("\"data\":");
+                if (dataPos != std::string::npos) {
+                    size_t p = dataPos + 7;
+                    while (p < frame.size() && (frame[p] == ' ' || frame[p] == '\t')) {
+                        ++p;
+                    }
+                    if (p < frame.size() && frame[p] == 'n') {
+                        ApplyDiscordVoiceChannelJson("null", false);
+                    } else if (p < frame.size() && frame[p] == '{') {
+                        const std::string channelJson = frame.substr(p);
+                        ApplyDiscordVoiceChannelJson(channelJson, true);
+                        std::string guildId;
+                        ExtractJsonStringField(channelJson, "guild_id", &guildId);
+                        if (!guildId.empty()) {
+                            const std::string gNonce = NewNonce();
+                            ipc.WriteFrame(
+                                1, std::string("{\"cmd\":\"GET_GUILD\",\"args\":{\"guild_id\":\"") +
+                                       guildId + "\"},\"nonce\":\"" + gNonce + "\"}");
+                        }
+                    }
+                }
+            }
+            if (frame.find("\"cmd\":\"GET_GUILD\"") != std::string::npos &&
+                frame.find("\"evt\":\"ERROR\"") == std::string::npos) {
+                const size_t dataPos = frame.find("\"data\":");
+                if (dataPos != std::string::npos) {
+                    size_t p = dataPos + 7;
+                    while (p < frame.size() && (frame[p] == ' ' || frame[p] == '\t')) {
+                        ++p;
+                    }
+                    if (p < frame.size() && frame[p] == '{') {
+                        ApplyDiscordGuildJson(frame.substr(p));
+                    }
+                }
+            }
+            if (frame.find("\"evt\":\"VOICE_CONNECTION_STATUS\"") != std::string::npos) {
+                if (frame.find("DISCONNECTED") != std::string::npos &&
+                    frame.find("VOICE_CONNECTED") == std::string::npos) {
+                    // leave soft — channel select is authoritative
+                }
+            }
+        }
+
+        Sleep(200);
+    }
+
+    ipc.Close();
+    g_discordRpcConnected.store(false);
+    g_discordRpcAuthenticated.store(false);
+    CoUninitialize();
+    return 0;
+}
+
+void StartDiscordRpcThread() {
+    if (g_discordRpcThread) {
+        return;
+    }
+    g_discordRpcStop.store(false);
+    g_discordRpcThread = CreateThread(nullptr, 0, DiscordRpcThreadProc, nullptr, 0, nullptr);
+}
+
+void StopDiscordRpcThread() {
+    g_discordRpcStop.store(true);
+    if (g_discordRpcThread) {
+        WaitForSingleObject(g_discordRpcThread, 3000);
+        CloseHandle(g_discordRpcThread);
+        g_discordRpcThread = nullptr;
+    }
+}
+
+void RequestDiscordAuthorize() {
+    // One-shot: the RPC thread consumes Authorize exactly once. Do not leave
+    // wantConnect sticky — that was re-firing Discord's authorize modal every loop.
+    g_discordRpcWantConnect.store(false);
+    g_discordRpcCommand.store(static_cast<int>(DiscordRpcCommand::Authorize));
+    StartDiscordRpcThread();
+}
+
+void RequestDiscordDisconnect() {
+    ClearDiscordAccessToken();
+    g_discordRpcCommand.store(static_cast<int>(DiscordRpcCommand::Disconnect));
+    g_discordRpcWantConnect.store(false);
+}
+
+bool FocusDiscordWindow();  // defined below
+
+struct DiscordWindowFinder {
+    HWND hwnd = nullptr;
+};
+
+BOOL CALLBACK FindDiscordWindowProc(HWND hwnd, LPARAM lp) {
+    if (!IsWindowVisible(hwnd)) {
+        return TRUE;
+    }
+    DWORD pid = 0;
+    GetWindowThreadProcessId(hwnd, &pid);
+    HANDLE proc = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!proc) {
+        return TRUE;
+    }
+    wchar_t path[MAX_PATH] = {};
+    DWORD size = ARRAYSIZE(path);
+    bool isDiscord = false;
+    if (QueryFullProcessImageNameW(proc, 0, path, &size)) {
+        std::wstring file = path;
+        const size_t slash = file.find_last_of(L"\\/");
+        std::wstring name = (slash == std::wstring::npos) ? file : file.substr(slash + 1);
+        for (auto& ch : name) {
+            ch = static_cast<wchar_t>(towlower(ch));
+        }
+        isDiscord = IsDiscordExeName(name);
+    }
+    CloseHandle(proc);
+    if (!isDiscord || GetWindow(hwnd, GW_OWNER) != nullptr) {
+        return TRUE;
+    }
+    reinterpret_cast<DiscordWindowFinder*>(lp)->hwnd = hwnd;
+    return FALSE;
+}
+
+bool FocusDiscordWindow() {
+    DiscordWindowFinder finder;
+    EnumWindows(FindDiscordWindowProc, reinterpret_cast<LPARAM>(&finder));
+    if (!finder.hwnd) {
+        return false;
+    }
+    if (IsIconic(finder.hwnd)) {
+        ShowWindow(finder.hwnd, SW_RESTORE);
+    }
+    SetForegroundWindow(finder.hwnd);
+    return true;
+}
+
+void EnsureDiscordRpcSession(const Settings& settings) {
+    if (g_discordRpcThread || !settings.discordVoice || settings.discordClientId.empty()) {
+        return;
+    }
+    // Resume with a saved token without another Connect click.
+    std::string token;
+    if (LoadDiscordAccessToken(&token)) {
+        StartDiscordRpcThread();
+    }
+}
+
+void UpdateActiveCall() {
+    Settings settings = GetSettingsCopy();
+    if (!settings.discordVoice) {
+        std::lock_guard lock(g_stateMutex);
+        g_state.call = CallSnapshot{};
+        return;
+    }
+
+    EnsureDiscordRpcSession(settings);
+
+    // When Local RPC is authenticated it owns join/leave + channel/server names.
+    if (g_discordRpcAuthenticated.load(std::memory_order_relaxed)) {
+        return;
+    }
+
+    // Fallback: Discord mic + non-loopback UDP → generic status card (no channel name).
+    static double pendingSince = 0.0;
+    static double clearSince = 0.0;
+    static bool latched = false;
+    const double now = NowSeconds();
+    const bool heuristic = DiscordHeuristicVoiceActive(nullptr);
+
+    if (heuristic) {
+        clearSince = 0.0;
+        if (!latched) {
+            if (pendingSince <= 0.0) {
+                pendingSince = now;
+            }
+            if (now - pendingSince < 0.6) {
+                return;
+            }
+            latched = true;
+            std::lock_guard lock(g_stateMutex);
+            if (g_state.call.source == CallDetectSource::Rpc && g_state.call.active) {
+                return;
+            }
+            g_state.call.active = true;
+            g_state.call.source = CallDetectSource::Heuristic;
+            g_state.call.controlsEnabled = false;
+            g_state.call.channelName = L"In a call";
+            g_state.call.guildName.clear();
+            g_state.call.startedAt = now;
+            g_state.call.selfMute = false;
+            g_state.call.selfDeaf = false;
+        }
+        return;
+    }
+
+    pendingSince = 0.0;
+    if (latched) {
+        if (clearSince <= 0.0) {
+            clearSince = now;
+        }
+        if (now - clearSince < 1.5) {
+            return;
+        }
+        latched = false;
+        clearSince = 0.0;
+        std::lock_guard lock(g_stateMutex);
+        if (g_state.call.source == CallDetectSource::Heuristic) {
+            g_state.call = CallSnapshot{};
+        }
+    }
+}
+
 
 std::wstring ReadClipboardText(HWND hwnd) {
     std::wstring text;
@@ -11006,6 +12040,9 @@ static constexpr UINT kShapeMenuIdBase = 50;
 // Lyrics sync submenu: +0 header (disabled), +1..+3 earlier 10/50/250, +4..+6 later 10/50/250, +7 reset.
 static constexpr UINT kLyricsSyncMenuIdBase = 60;
 
+// Discord Voice submenu: +0 Connect, +1 Disconnect.
+static constexpr UINT kDiscordMenuIdBase = 80;
+
 // Right-click nudge for the profile that is active right now (Bluetooth or speakers).
 // Stored separately from the Mod Settings value; effective offset = setting + nudge.
 // Deliberately does not call LoadSettings(), which also resets the pinned state.
@@ -11103,6 +12140,15 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
         AppendMenuW(timerMenu, MF_STRING, 34, L"Stop Timer");
     }
     AppendMenuW(menu, MF_POPUP, reinterpret_cast<UINT_PTR>(timerMenu), L"Focus Timer");
+    if (GetSettingsCopy().discordVoice) {
+        HMENU discordMenu = CreatePopupMenu();
+        const bool rpcOn = g_discordRpcAuthenticated.load(std::memory_order_relaxed);
+        AppendMenuW(discordMenu, MF_STRING | (rpcOn ? (MF_GRAYED | MF_DISABLED) : 0), 80,
+                    L"Connect Discord Voice…");
+        AppendMenuW(discordMenu, MF_STRING | (rpcOn ? 0 : (MF_GRAYED | MF_DISABLED)), 81,
+                    L"Disconnect Discord Voice");
+        AppendMenuW(menu, MF_POPUP, reinterpret_cast<UINT_PTR>(discordMenu), L"Discord Voice");
+    }
 
     std::vector<MediaSourceMenuItem> mediaSourceItems;
     {
@@ -11125,7 +12171,8 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
                     clearLabel.c_str());
         AppendMenuW(menu, MF_POPUP, reinterpret_cast<UINT_PTR>(trayMenu), Loc(L"File Tray"));
     }
-    AppendMenuW(menu, MF_STRING, 2, L"Pin expanded");
+    AppendMenuW(menu, MF_STRING | (Wh_GetIntValue(L"PinnedExpanded", 0) ? MF_CHECKED : 0), 2,
+                L"Pin expanded");
     AppendMenuW(menu, MF_STRING, 3, Wh_GetIntValue(L"GameOverlayPinned", 0) ? L"Hide game overlay" : L"Show game overlay");
     {
         // g_settings already reflects any right-click override, so it is the
@@ -11383,6 +12430,12 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
         case 34:
             StopFocusTimer();
             break;
+        case 80:
+            RequestDiscordAuthorize();
+            break;
+        case 81:
+            RequestDiscordDisconnect();
+            break;
         case 40: {
             // Only reachable while visible (a hidden window can't be
             // right-clicked), so in practice this toggles hidden -> the
@@ -11604,6 +12657,7 @@ struct CollapsedLyricLine {
     bool isTitle = false;  // true when this is the media-title fallback, not a lyric line
 };
 
+// === Renderer ===
 class Renderer {
    public:
     bool Initialize(HWND hwnd) {
@@ -11641,7 +12695,8 @@ class Renderer {
     }
 
     bool Render(const SharedState& state, const Settings& settings, const Activity& primary,
-                const std::optional<Activity>& secondary, float width, float height,
+                const std::optional<Activity>& secondary,
+                const std::optional<Activity>& tertiary, float width, float height,
                 float nudge, bool hover, bool pinned, double now,
                 bool combineClosing = false) {
         EnsureTextFormats(settings.sizeScale, settings.fontFamily, settings.textScale);
@@ -11731,7 +12786,7 @@ class Renderer {
         const bool gameMetricsPresent = primary.kind == IslandKind::Idle &&
             (settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0);
         // True while the island is collapsing to nothing (auto-hide / fullscreen).
-        islandHiding_ = primary.width < 1.0f && primary.height < 1.0f && !secondary;
+        islandHiding_ = primary.width < 1.0f && primary.height < 1.0f && !secondary && !tertiary;
 
         const float hoverScale = (settings.expandOnHover && ((hover && !gameMetricsPresent) || pinned)) ? 1.025f : 1.0f;
         const float scale = hoverScale;
@@ -11739,16 +12794,48 @@ class Renderer {
 
 
         if (width >= 2.0f && height >= 2.0f) {
-            if (secondary) {
-                // Apple-style: one continuous island with leading + trailing
-                // content regions. Reveal progress drives open: alert grows from
-                // the center while media is pushed to the trailing edge.
+            const int bayCount = 1 + (secondary ? 1 : 0) + (tertiary ? 1 : 0);
+            if (bayCount >= 2) {
+                // One continuous island. Fixed order: left → right as primary,
+                // secondary, tertiary. When the last bay is Media it stays anchored
+                // to the trailing edge while leading bays reveal during open.
+                const Activity* bays[3] = {&primary, nullptr, nullptr};
+                int n = 1;
+                if (secondary) {
+                    bays[n++] = &*secondary;
+                }
+                if (tertiary) {
+                    bays[n++] = &*tertiary;
+                }
+
                 const float slotGap = 10.0f * settings.sizeScale;
-                const float pairTarget = primary.width + secondary->width + slotGap;
-                const float reveal = (pairTarget > secondary->width + 2.0f)
-                    ? SmoothStep01(Clamp(
-                          (width - secondary->width) / (pairTarget - secondary->width), 0.0f, 1.0f))
-                    : 1.0f;
+                const bool trailIsMedia = bays[n - 1]->kind == IslandKind::Media;
+                float leadTarget = 0.0f;
+                const int leadCount = trailIsMedia ? (n - 1) : n;
+                // Trailing-Media "reveal" (Media stays put, alert slides in) is only
+                // for transient popups. Call/Timer/Idle must keep a reserved width or
+                // an expanding Media player eats them (clipped "Ma"/"Ge" call chip).
+                bool leadUsesReveal = trailIsMedia && leadCount > 0;
+                for (int i = 0; i < leadCount; ++i) {
+                    leadTarget += bays[i]->width;
+                    if (i + 1 < leadCount) {
+                        leadTarget += slotGap;
+                    }
+                    const IslandKind k = bays[i]->kind;
+                    if (k == IslandKind::Call || k == IslandKind::Timer ||
+                        k == IslandKind::Idle || k == IslandKind::Media) {
+                        leadUsesReveal = false;
+                    }
+                }
+                const float trailW = trailIsMedia ? bays[n - 1]->width : 0.0f;
+                const float pairTarget =
+                    leadTarget + (trailIsMedia ? slotGap + trailW : 0.0f);
+                const float reveal =
+                    (leadUsesReveal && pairTarget > trailW + 2.0f)
+                        ? SmoothStep01(Clamp(
+                              (width - trailW) / (pairTarget - trailW), 0.0f, 1.0f))
+                        : 1.0f;
+
                 const float islandTop = top;
                 const D2D1_RECT_F islandRect =
                     D2D1::RectF(left, islandTop, left + width, islandTop + height);
@@ -11760,31 +12847,58 @@ class Renderer {
                 } else if (!settings.w11Style) {
                     radius = std::min(radius, 44.0f * settings.sizeScale);
                 }
-                DrawSoftShadow(islandRect, radius);
-                const IslandKind chromeKind =
-                    (primary.kind == IslandKind::Media || secondary->kind == IslandKind::Media)
-                        ? IslandKind::Media
-                        : primary.kind;
+                DrawSoftShadow(islandRect, radius, settings);
+                IslandKind chromeKind = primary.kind;
+                for (int i = 0; i < n; ++i) {
+                    if (bays[i]->kind == IslandKind::Media) {
+                        chromeKind = IslandKind::Media;
+                        break;
+                    }
+                    if (bays[i]->kind == IslandKind::Call) {
+                        chromeKind = IslandKind::Call;
+                    }
+                }
                 DrawPillSurface(islandRect, radius, chromeKind, settings);
 
-                // Media stays on the trailing edge (pushed right as we open).
-                const float mediaW = secondary->width;
-                const float mediaLeft = left + std::max(0.0f, width - mediaW);
-                // Alert grows out of the center of the leading bay into the left slot.
-                const float leadWidth = std::max(0.0f, mediaLeft - slotGap - left);
-                const float alertDrawW = std::min(primary.width * reveal, leadWidth);
-                const float alertDrawLeft =
-                    left + (leadWidth - alertDrawW) * 0.5f * (1.0f - reveal);
+                float trailLeft = left + width;
+                float mediaDrawW = trailW;
+                if (trailIsMedia) {
+                    if (leadUsesReveal) {
+                        trailLeft = left + std::max(0.0f, width - trailW);
+                    } else {
+                        // Pack LTR: never let Media start before the Call/Idle lead.
+                        const float reserved = leadTarget + slotGap;
+                        trailLeft = left + reserved;
+                        mediaDrawW = std::max(0.0f, (left + width) - trailLeft);
+                    }
+                }
+                const float leadWidth =
+                    trailIsMedia ? std::max(0.0f, trailLeft - slotGap - left) : width;
 
-                if (alertDrawW > 2.0f) {
-                    DrawPill(state, settings, primary,
-                             D2D1::RectF(alertDrawLeft, islandTop,
-                                          alertDrawLeft + alertDrawW, islandTop + height),
+                // Place leading bays left-to-right inside the lead region.
+                float cursor = left;
+                const float leadDrawn = leadTarget * reveal;
+                const float leadOffset = (leadWidth - leadDrawn) * 0.5f * (1.0f - reveal);
+                cursor += leadOffset;
+                for (int i = 0; i < leadCount; ++i) {
+                    const float bayW = bays[i]->width * reveal;
+                    if (bayW > 2.0f) {
+                        DrawPill(state, settings, *bays[i],
+                                 D2D1::RectF(cursor, islandTop, cursor + bayW,
+                                             islandTop + height),
+                                 scale, now, /*drawChrome=*/false);
+                    }
+                    cursor += bayW;
+                    if (i + 1 < leadCount) {
+                        cursor += slotGap * reveal;
+                    }
+                }
+                if (trailIsMedia && mediaDrawW > 2.0f) {
+                    DrawPill(state, settings, *bays[n - 1],
+                             D2D1::RectF(trailLeft, islandTop, trailLeft + mediaDrawW,
+                                         islandTop + height),
                              scale, now, /*drawChrome=*/false);
                 }
-                DrawPill(state, settings, *secondary,
-                         D2D1::RectF(mediaLeft, islandTop, mediaLeft + mediaW, islandTop + height),
-                         scale, now, /*drawChrome=*/false);
             } else {
                 // Closing a combined alert: keep the full silhouette while it
                 // shrinks, and slide media along the trailing edge back to center.
@@ -11799,7 +12913,7 @@ class Renderer {
                     } else if (!settings.w11Style) {
                         radius = std::min(radius, 44.0f * settings.sizeScale);
                     }
-                    DrawSoftShadow(islandRect, radius);
+                    DrawSoftShadow(islandRect, radius, settings);
                     DrawPillSurface(islandRect, radius, IslandKind::Media, settings);
 
                     const float mediaW = primary.width;
@@ -12670,7 +13784,7 @@ class Renderer {
         }
 
         if (drawChrome) {
-            DrawSoftShadow(rect, radius);
+            DrawSoftShadow(rect, radius, settings);
             DrawPillSurface(rect, radius, activity.kind, settings);
         }
 
@@ -12705,37 +13819,40 @@ class Renderer {
                 DrawMedia(state, unscaledRect, settings, now);
                 break;
             case IslandKind::Clipboard:
-                DrawClipboard(state, unscaledRect);
+                DrawClipboard(state, unscaledRect, settings);
                 break;
             case IslandKind::Notification:
-                DrawNotification(state, unscaledRect);
+                DrawNotification(state, unscaledRect, settings);
                 break;
             case IslandKind::Volume:
-                DrawVolume(state, unscaledRect);
+                DrawVolume(state, unscaledRect, settings);
                 break;
             case IslandKind::Brightness:
-                DrawBrightness(state, unscaledRect);
+                DrawBrightness(state, unscaledRect, settings);
                 break;
             case IslandKind::CapsLock:
-                DrawCapsLock(state, unscaledRect);
+                DrawCapsLock(state, unscaledRect, settings);
                 break;
             case IslandKind::Device:
-                DrawDevice(state, unscaledRect);
+                DrawDevice(state, unscaledRect, settings);
                 break;
             case IslandKind::Bluetooth:
-                DrawBluetoothDevice(state, unscaledRect);
+                DrawBluetoothDevice(state, unscaledRect, settings);
                 break;
             case IslandKind::Timer:
-                DrawTimer(state, unscaledRect);
+                DrawTimer(state, unscaledRect, settings);
+                break;
+            case IslandKind::Call:
+                DrawCall(state, unscaledRect, settings, now);
                 break;
             case IslandKind::BatteryLow:
-                DrawBattery(state, unscaledRect);
+                DrawBattery(state, unscaledRect, settings);
                 break;
             case IslandKind::Progress:
-                DrawProgress(state, unscaledRect);
+                DrawProgress(state, unscaledRect, settings);
                 break;
             case IslandKind::DoNotDisturb:
-                DrawDoNotDisturb(state, unscaledRect);
+                DrawDoNotDisturb(state, unscaledRect, settings);
                 break;
             case IslandKind::Lookup:
                 DrawLookup(state, unscaledRect, settings, now);
@@ -12759,14 +13876,14 @@ class Renderer {
     // to a DC-bound target for UpdateLayeredWindow), so a Gaussian blur effect
     // is not available -- but the render padding around the pill leaves room to
     // fake it convincingly and cheaply.
-    void DrawSoftShadow(D2D1_RECT_F rect, float radius) {
+    void DrawSoftShadow(D2D1_RECT_F rect, float radius, const Settings& settings) {
         // A backdrop material clips the window to the island's silhouette, so
         // anything drawn out in the padding would be cut off anyway.
-        if (!g_settings.dropShadow || g_settings.backdropMaterial != BackdropMaterial::None) {
+        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {
             return;
         }
 
-        const float spread = Clamp(14.0f * g_settings.sizeScale, 6.0f, kRenderPadY - 4.0f);
+        const float spread = Clamp(14.0f * settings.sizeScale, 6.0f, kRenderPadY - 4.0f);
         const float yOffset = spread * 0.35f;
         constexpr int kSteps = 7;
 
@@ -12788,8 +13905,8 @@ class Renderer {
             const D2D1_RECT_F shadowRect = D2D1::RectF(
                 rect.left - grow, rect.top - grow * 0.55f + yOffset,
                 rect.right + grow, rect.bottom + grow + yOffset);
-            FillIslandShape(shadowRect, radius + grow, g_settings.w11Style,
-                            g_settings.notchStyle, brush);
+            FillIslandShape(shadowRect, radius + grow, settings.w11Style,
+                            settings.notchStyle, brush);
         }
         brush->SetOpacity(1.0f);
     }
@@ -12799,7 +13916,7 @@ class Renderer {
     // the same edge-glow look the rest of this design removes. What is left is
     // a single downward shade that grounds the surface without lighting any
     // edge: neutral at the top, gradually deeper toward the bottom.
-    void FillSurfaceDepth(D2D1_RECT_F rect, float radius, bool strong) {
+    void FillSurfaceDepth(D2D1_RECT_F rect, float radius, bool strong, const Settings& settings) {
         const float h = rect.bottom - rect.top;
         if (h <= 2.0f) {
             return;
@@ -12824,13 +13941,13 @@ class Renderer {
             return;
         }
         brush->SetOpacity(Clamp(botA, 0.0f, 1.0f));
-        FillIslandShape(rect, radius, g_settings.w11Style, g_settings.notchStyle, brush);
+        FillIslandShape(rect, radius, settings.w11Style, settings.notchStyle, brush);
     }
 
     // A wide, very soft accent wash bled in from the top of the surface. Driven
     // by the album-art accent, this is what makes the media surface feel alive
     // without tinting the whole pill.
-    void FillAccentBloom(D2D1_RECT_F rect, float radius, float strength) {
+    void FillAccentBloom(D2D1_RECT_F rect, float radius, float strength, const Settings& settings) {
         if (strength <= 0.01f) {
             return;
         }
@@ -12855,7 +13972,7 @@ class Renderer {
             return;
         }
         brush->SetOpacity(Clamp(strength * settingsOpacity_, 0.0f, 1.0f));
-        FillIslandShape(rect, radius, g_settings.w11Style, g_settings.notchStyle, brush);
+        FillIslandShape(rect, radius, settings.w11Style, settings.notchStyle, brush);
     }
 
     // Rounded inner card used by every dashboard, so panels across the media,
@@ -13021,14 +14138,15 @@ class Renderer {
         }
 
         if (settings.materialDepth) {
-            FillSurfaceDepth(rect, radius, kind == IslandKind::Media || kind == IslandKind::Idle);
+            FillSurfaceDepth(rect, radius, kind == IslandKind::Media || kind == IslandKind::Idle,
+                             settings);
 
             // Media leans on the album-art accent; other surfaces get a whisper
             // of it so the whole UI still feels connected to what is playing.
             const float bloom = (kind == IslandKind::Media) ? 0.115f
                                 : (kind == IslandKind::Idle) ? 0.055f
                                                              : 0.075f;
-            FillAccentBloom(rect, radius, bloom * settings.accentBloom);
+            FillAccentBloom(rect, radius, bloom * settings.accentBloom, settings);
         }
 
         if (settings.contourBorderMode != ContourBorderMode::Borderless && settings.contourBorderEnabled) {
@@ -15002,7 +16120,7 @@ class Renderer {
     void DrawIdleDashboard(const SharedState& state, D2D1_RECT_F rect, const Settings& settings,
                            double now) {
         if (settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0) {
-            DrawGameOverlay(state, rect, 1.0f);
+            DrawGameOverlay(state, rect, settings);
             return;
         }
         if (!clockFormat_) return;
@@ -15013,11 +16131,11 @@ class Renderer {
         // as a faint square "border" around the round island while collapsing.
         // Publish the same content-space geometry the media surface does, so the
         // File Tray's row hit test works while the island is idle too.
-        PublishContentGeometry(rect);
+        PublishContentGeometry(rect, settings);
 
         const float dashHeight = rect.bottom - rect.top;
-        const float dashRadius = ContentIslandRadius(dashHeight);
-        ComPtr<ID2D1Geometry> dashMask = CreateIslandMaskGeometry(rect, dashRadius, g_settings.notchStyle);
+        const float dashRadius = ContentIslandRadius(dashHeight, settings);
+        ComPtr<ID2D1Geometry> dashMask = CreateIslandMaskGeometry(rect, dashRadius, settings.notchStyle);
         ID2D1Layer* dashLayer = AcquireLayer();
         const bool haveDashMask = dashMask && dashLayer;
         if (haveDashMask) {
@@ -15199,10 +16317,9 @@ class Renderer {
         if (haveDashMask) target_->PopLayer(); else target_->PopAxisAlignedClip();
     }
 
-    void DrawGameOverlay(const SharedState& state, D2D1_RECT_F rect, float unused_scale) {
-        (void)unused_scale;
+    void DrawGameOverlay(const SharedState& state, D2D1_RECT_F rect, const Settings& settings) {
         const float scale = 1.0f;
-        const bool compact = g_settings.gameOverlayCompact;
+        const bool compact = settings.gameOverlayCompact;
         const GameOverlayLayout::Metrics m = GameOverlayLayout::For(compact);
 
         const float cardTop = rect.top + m.padY;
@@ -15213,7 +16330,7 @@ class Renderer {
         // Frame rate is the number a player actually watches, so it gets a wider
         // card and a larger figure than the percentages beside it. It has no
         // 0-100 ceiling, so it gets no load bar and keeps the plain accent.
-        if (g_settings.gameOverlayShowFps) {
+        if (settings.gameOverlayShowFps) {
             const D2D1_RECT_F fpsCard = D2D1::RectF(cursorX, cardTop, cursorX + m.fpsW, cardBottom);
             DrawCard(fpsCard, m.radius);
 
@@ -15227,7 +16344,7 @@ class Renderer {
             const float textLeft = fpsCard.left + 28.0f * scale;
             const float textRight = fpsCard.right - 9.0f * scale;
 
-            if (g_settings.showMetricText && smallTextFormat_) {
+            if (settings.showMetricText && smallTextFormat_) {
                 smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
                 smallTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
                 mutedBrush_->SetOpacity(0.58f);
@@ -15249,7 +16366,7 @@ class Renderer {
                 // Shares the label's left margin so the glyph sits in its own
                 // column and the text column has one straight edge, rather than
                 // the value hanging out to the left of the label above it.
-                const float top = g_settings.showMetricText ? fpsCard.top + 16.0f * scale : cardTop;
+                const float top = settings.showMetricText ? fpsCard.top + 16.0f * scale : cardTop;
                 target_->DrawTextW(fpsValue, static_cast<UINT32>(wcslen(fpsValue)), fpsFmt,
                                    D2D1::RectF(textLeft, top,
                                                textRight, cardBottom - 3.0f * scale),
@@ -15272,10 +16389,10 @@ class Renderer {
             bool enabled;
         };
         const GameCard cards[] = {
-            {L"CPU", state.system.cpuPercent,              3, g_settings.gameOverlayShowCpu},
-            {L"RAM", state.system.memoryPercent,           4, g_settings.gameOverlayShowRam},
-            {L"GPU", state.system.gpuPercent,              5, g_settings.gameOverlayShowGpu},
-            {L"DISK", 100 - state.system.diskFreePercent,  8, g_settings.gameOverlayShowDisk},
+            {L"CPU", state.system.cpuPercent,              3, settings.gameOverlayShowCpu},
+            {L"RAM", state.system.memoryPercent,           4, settings.gameOverlayShowRam},
+            {L"GPU", state.system.gpuPercent,              5, settings.gameOverlayShowGpu},
+            {L"DISK", 100 - state.system.diskFreePercent,  8, settings.gameOverlayShowDisk},
         };
 
         for (const GameCard& card : cards) {
@@ -15286,7 +16403,7 @@ class Renderer {
                 break;  // ran out of room
             }
             DrawGameMetricCard(D2D1::RectF(cursorX, cardTop, cursorX + m.cardW, cardBottom),
-                               card.label, card.percent, card.glyph, m.radius);
+                               card.label, card.percent, card.glyph, m.radius, settings);
             cursorX += m.cardW + m.gap;
         }
 
@@ -15294,7 +16411,8 @@ class Renderer {
         mutedBrush_->SetOpacity(0.58f);
     }
 
-    void DrawGameMetricCard(D2D1_RECT_F rect, const wchar_t* label, int percent, int glyph, float radius) {
+    void DrawGameMetricCard(D2D1_RECT_F rect, const wchar_t* label, int percent, int glyph,
+                            float radius, const Settings& settings) {
         const float scale = 1.0f;
 
         // Same semantic load colour the hardware dashboard uses: accent while a
@@ -15321,7 +16439,7 @@ class Renderer {
         const float textRight = rect.right - 8.0f * scale;
 
         // Label above value above bar, matching the hardware dashboard exactly.
-        if (g_settings.showMetricText && smallTextFormat_) {
+        if (settings.showMetricText && smallTextFormat_) {
             smallTextFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
             smallTextFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
             mutedBrush_->SetOpacity(0.58f);
@@ -15345,7 +16463,7 @@ class Renderer {
             textBrush_->SetOpacity(0.95f);
             // Aligned with the label above it, so the glyph owns the left column
             // and label/value share one straight edge.
-            const float valueTop = g_settings.showMetricText ? rect.top + 17.0f * scale
+            const float valueTop = settings.showMetricText ? rect.top + 17.0f * scale
                                                              : rect.top + 4.0f * scale;
             target_->DrawTextW(value, static_cast<UINT32>(wcslen(value)), textFormat_.Get(),
                                D2D1::RectF(textLeft, valueTop,
@@ -15566,7 +16684,7 @@ class Renderer {
     // OverlayWndProc hit-tests against the real geometry rather than assuming
     // the pill is centered in the client area. Seqlock write: bump to odd,
     // store, bump to even, so a reader can never mix two frames.
-    void PublishContentGeometry(D2D1_RECT_F rect, float rightTrim = 0.0f) {
+    void PublishContentGeometry(D2D1_RECT_F rect, const Settings& settings) {
         const unsigned seq = g_mediaHitSeq.load(std::memory_order_relaxed);
         g_mediaHitSeq.store(seq + 1, std::memory_order_relaxed);
         std::atomic_thread_fence(std::memory_order_release);
@@ -15575,8 +16693,8 @@ class Renderer {
         g_mediaHitTop.store(rect.top, std::memory_order_relaxed);
         g_mediaHitRight.store(rect.right, std::memory_order_relaxed);
         g_mediaHitBottom.store(rect.bottom, std::memory_order_relaxed);
-        g_mediaHitScale.store(g_settings.sizeScale, std::memory_order_relaxed);
-        g_mediaHitTrim.store(rightTrim, std::memory_order_relaxed);
+        g_mediaHitScale.store(settings.sizeScale, std::memory_order_relaxed);
+        g_mediaHitTrim.store(0.0f, std::memory_order_relaxed);
         g_mediaHitStamp.store(GetTickCount64(), std::memory_order_relaxed);
 
         std::atomic_thread_fence(std::memory_order_release);
@@ -15589,14 +16707,48 @@ class Renderer {
     // must not be pre-multiplied by sizeScale. They previously were, so the
     // stadium corner arc grew with the size scale until it cut across the album
     // art's top-left corner (visible from roughly 2x upwards).
-    float ContentIslandRadius(float contentHeight) const {
-        if (g_settings.notchStyle) {
+    float ContentIslandRadius(float contentHeight, const Settings& settings) const {
+        if (settings.notchStyle) {
             return 16.0f;
         }
-        if (g_settings.w11Style) {
+        if (settings.w11Style) {
             return 8.0f;
         }
         return std::min(contentHeight * 0.5f, 44.0f);
+    }
+
+    // Advances artMorphLin_ / artBadgeAlpha_ for the shared cover morph.
+    float UpdateArtMorph(float height, const Settings& settings, double now) {
+        constexpr float kArtMorphEndHeight = 120.0f;
+        constexpr float kArtExpandSec = 0.26f;
+        const float artMorphRaw = Clamp((height - MediaLayout::kExpandedMinHeight) /
+                                        (kArtMorphEndHeight - MediaLayout::kExpandedMinHeight),
+                                        0.0f, 1.0f);
+        const bool artOnMediaTab = NormalizedTabIndex(settings) == MediaTabIndex(settings);
+        const bool freshMorph = artMorphLast_ >= 0.0 && (now - artMorphLast_) < 0.25;
+        const float dtMorph =
+            freshMorph ? Clamp(static_cast<float>(now - artMorphLast_), 0.001f, 0.05f) : 0.0f;
+        artMorphLast_ = now;
+
+        if (!freshMorph || artMorphRaw <= artMorphLin_ || !artOnMediaTab) {
+            artMorphLin_ = artMorphRaw;
+        } else {
+            artMorphLin_ = std::min(artMorphRaw, artMorphLin_ + dtMorph / kArtExpandSec);
+            g_layoutDirty = true;
+        }
+        const float artMorph = SmoothStep01(artMorphLin_);
+
+        if (artMorph >= 1.0f) {
+            if (!freshMorph) {
+                artBadgeAlpha_ = 1.0f;
+            } else if (artBadgeAlpha_ < 1.0f) {
+                artBadgeAlpha_ = std::min(1.0f, artBadgeAlpha_ + dtMorph / 0.20f);
+                g_layoutDirty = true;
+            }
+        } else {
+            artBadgeAlpha_ = 0.0f;
+        }
+        return artMorph;
     }
 
     // Takes settings by reference from Render()'s private copy rather than
@@ -15624,18 +16776,13 @@ class Renderer {
         expandedAnim_ = settings.expandedMediaAnim;
         pillCoverAnim_ = settings.pillCoverAnim;
 
-        // The old side panel is replaced by the immersive lyrics view, so the island never widens.
-        const bool sideLyricsOn = false;
         // 0 = normal player, 1 = immersive lyrics (always 0 unless "Lyrics in the media tab" is on).
         const float immersiveMix = UpdateImmersiveMix(settings, height, now);
         g_immersiveMixPub.store(immersiveMix, std::memory_order_relaxed);
-        const float sideLyricsExtra =
-            sideLyricsOn ? std::max(0.0f, (rect.right - rect.left) - MediaLayout::kExpandedWidth)
-                         : 0.0f;
 
-        PublishContentGeometry(rect, sideLyricsExtra);
+        PublishContentGeometry(rect, settings);
 
-        const float radius = ContentIslandRadius(height);
+        const float radius = ContentIslandRadius(height, settings);
         ComPtr<ID2D1Geometry> mask = CreateIslandMaskGeometry(rect, radius, settings.notchStyle);
         ID2D1Layer* layer = AcquireLayer();
 
@@ -15646,50 +16793,10 @@ class Renderer {
         // One art element that morphs between the collapsed geometry (small circle
         // on the left) and the expanded geometry (64px rounded square) as the island
         // grows or shrinks, instead of cross-fading two different shapes.
-        // artMorph: 0 = collapsed pill, 1 = fully expanded (reached at 120px, where
-        // the expanded layer is already fully opaque and takes over drawing the art).
         constexpr float kCollapsedPillHeight = 44.0f;
-        constexpr float kArtMorphEndHeight = 120.0f;
         constexpr float kCollapsedArtPad = 6.0f;
         constexpr float kCollapsedArtSize = kCollapsedPillHeight - kCollapsedArtPad * 2.0f;
-        // Start the expand morph where the expanded layer appears, so a taller
-        // companion alert (clipboard at 56px) does not partially morph the art.
-        const float artMorphRaw = Clamp((height - MediaLayout::kExpandedMinHeight) /
-                                        (kArtMorphEndHeight - MediaLayout::kExpandedMinHeight),
-                                        0.0f, 1.0f);
-
-        // Shrinking follows the height exactly (unchanged). Expanding is not
-        // allowed to run faster than kArtExpandSec for the full circle -> square
-        // change, because the expand spring is so fast that the morph would
-        // otherwise be over in a few frames.
-        constexpr float kArtExpandSec = 0.26f;
-        // The art only travels to its expanded spot on the Media tab. On any other
-        // first tab (e.g. pinned lyrics) it just follows the height, with no throttle.
-        const bool artOnMediaTab = NormalizedTabIndex(settings) == MediaTabIndex(settings);
-        const bool freshMorph = artMorphLast_ >= 0.0 && (now - artMorphLast_) < 0.25;
-        const float dtMorph = freshMorph ? Clamp(static_cast<float>(now - artMorphLast_), 0.001f, 0.05f) : 0.0f;
-        artMorphLast_ = now;
-
-        if (!freshMorph || artMorphRaw <= artMorphLin_ || !artOnMediaTab) {
-            artMorphLin_ = artMorphRaw;
-        } else {
-            artMorphLin_ = std::min(artMorphRaw, artMorphLin_ + dtMorph / kArtExpandSec);
-            g_layoutDirty = true;  // keep frames coming until the morph catches up
-        }
-        const float artMorph = SmoothStep01(artMorphLin_);
-
-        // Source badge: hidden during the morph, fades in once the art hands over
-        // to the expanded layer (this used to pop in instantly).
-        if (artMorph >= 1.0f) {
-            if (!freshMorph) {
-                artBadgeAlpha_ = 1.0f;
-            } else if (artBadgeAlpha_ < 1.0f) {
-                artBadgeAlpha_ = std::min(1.0f, artBadgeAlpha_ + dtMorph / 0.20f);
-                g_layoutDirty = true;
-            }
-        } else {
-            artBadgeAlpha_ = 0.0f;
-        }
+        const float artMorph = UpdateArtMorph(height, settings, now);
         float pillClockSection = 0.0f;
         if (settings.mediaPillClock && idleTextFormat_) {
             pillClockSection = MeasureMediaPill(state, settings).sectionWidth;
@@ -15749,12 +16856,6 @@ class Renderer {
 
             auto drawTabContent = [&](int activeTabId) {
             if (activeTabId == 0) {
-                // With side lyrics on, the player lives in the left part of the island and
-                // the rest of this branch (which uses `rect`) lays out exactly as before.
-                const D2D1_RECT_F fullIslandRect = rect;
-                const D2D1_RECT_F rect = D2D1::RectF(fullIslandRect.left, fullIslandRect.top,
-                                                     fullIslandRect.right - sideLyricsExtra,
-                                                     fullIslandRect.bottom);
                 // Source switch envelope for everything that changes with the source.
                 float swapAlpha = 1.0f, swapDx = 0.0f;
                 UpdateSourceSwap(state, now, &swapAlpha, &swapDx);
@@ -16001,12 +17102,6 @@ class Renderer {
                     DrawImmersiveLyricsButton(rect, immersiveMix);
                 }
                 target_->SetTransform(playerZoneOldTransform);
-                if (sideLyricsExtra > 1.0f) {
-                    DrawMediaSideLyrics(state,
-                                        D2D1::RectF(rect.right, fullIslandRect.top,
-                                                    fullIslandRect.right, fullIslandRect.bottom),
-                                        settings, now);
-                }
             } else if (activeTabId == 1) {
                 SYSTEMTIME local = {}; GetLocalTime(&local);
                 DrawCalendarDashboard(state, rect, settings, now, 1.0f, local);
@@ -16640,240 +17735,6 @@ class Renderer {
         target_->PopAxisAlignedClip();
         if (fadeLayer) {
             target_->PopLayer();
-        }
-        textBrush_->SetOpacity(0.96f);
-        mutedBrush_->SetOpacity(0.75f);
-    }
-
-    // Builds a wrapped lyric line for the media-tab lyrics panel, shrinking the font
-    // until it fits maxHeight (down to about 10px).
-    void BuildSideLyricLine(CollapsedLyricLine& out, const std::wstring& text, float width,
-                            float maxHeight, const Settings& settings) {
-        out.text = text;
-        out.layout.Reset();
-        out.width = 0.0f;
-        out.height = 0.0f;
-        out.isTitle = false;
-        if (!dwriteFactory_ || text.empty()) {
-            return;
-        }
-
-        const wchar_t* family =
-            settings.fontFamily.empty() ? L"Segoe UI Variable Display" : settings.fontFamily.c_str();
-        const float ts = Clamp(settings.textScale, 0.7f, 1.6f);
-        const float minSize = 10.0f * ts;
-        float size = 16.0f * ts;
-
-        for (int attempt = 0; attempt < 8; ++attempt) {
-            ComPtr<IDWriteTextFormat> fmt;
-            HRESULT hr = dwriteFactory_->CreateTextFormat(
-                family, nullptr, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-                DWRITE_FONT_STRETCH_NORMAL, size, L"", &fmt);
-            if (FAILED(hr) || !fmt) {
-                fmt.Reset();
-                hr = dwriteFactory_->CreateTextFormat(
-                    L"Segoe UI", nullptr, DWRITE_FONT_WEIGHT_BOLD, DWRITE_FONT_STYLE_NORMAL,
-                    DWRITE_FONT_STRETCH_NORMAL, size, L"", &fmt);
-                if (FAILED(hr) || !fmt) {
-                    return;
-                }
-            }
-            fmt->SetWordWrapping(DWRITE_WORD_WRAPPING_WRAP);
-            fmt->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_LEADING);
-            fmt->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_NEAR);
-
-            ComPtr<IDWriteTextLayout> layout;
-            if (FAILED(dwriteFactory_->CreateTextLayout(text.c_str(), static_cast<UINT32>(text.size()),
-                                                        fmt.Get(), width, 4096.0f, &layout)) ||
-                !layout) {
-                return;
-            }
-            DWRITE_TEXT_METRICS tm{};
-            layout->GetMetrics(&tm);
-            out.layout = layout;
-            out.width = tm.width;
-            out.height = tm.height;
-
-            if (tm.height <= maxHeight || size <= minSize) {
-                break;
-            }
-            size = std::max(minSize, size - 1.5f * ts);
-        }
-    }
-
-    // Lyrics side panel for the expanded media tab. `area` is the strip to the right of
-    // the normal player. Previous / next lines are dimmed, the current line is large and
-    // wrapped, and it slides in when the line changes.
-    void DrawMediaSideLyrics(const SharedState& state, D2D1_RECT_F area, const Settings& settings,
-                             double now) {
-        const float areaW = area.right - area.left;
-        if (areaW < 8.0f || !textFormat_ || !smallTextFormat_ || !dwriteFactory_) {
-            return;
-        }
-
-        // Fades in as the island widens, so nothing pops while the spring is moving.
-        const float reveal = SmoothStep01((areaW - 6.0f) / (MediaLayout::kSideLyricsWidth * 0.55f));
-        if (reveal <= 0.01f) {
-            return;
-        }
-
-        constexpr float kPadX = 18.0f;
-        constexpr float kSlidePx = 12.0f;
-        constexpr double kAnimSec = 0.30;
-        const float textLeft = area.left + kPadX;
-        const float textW = MediaLayout::kSideLyricsWidth - kPadX * 2.0f;
-
-        const bool fresh = sideLyricLastDrawn_ >= 0.0 && (now - sideLyricLastDrawn_) < 0.25;
-        sideLyricLastDrawn_ = now;
-
-        ID2D1Layer* fadeLayer = AcquireLayer();
-        if (fadeLayer) {
-            target_->PushLayer(D2D1::LayerParameters(area, nullptr, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE,
-                                                      D2D1::IdentityMatrix(), reveal, nullptr,
-                                                      D2D1_LAYER_OPTIONS_NONE),
-                               fadeLayer);
-        } else {
-            target_->PushAxisAlignedClip(area, D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-        }
-
-        // Thin separator between the player and the lyrics.
-        if (ID2D1SolidColorBrush* divider =
-                AcquireBrush(WithAlpha(material_.hairline, material_.hairline.a * settingsOpacity_))) {
-            target_->FillRectangle(
-                D2D1::RectF(area.left, area.top + 24.0f, area.left + 1.0f, area.bottom - 24.0f),
-                divider);
-        }
-
-        const auto& lines = state.lyrics.lines;
-        const bool usable =
-            state.lyrics.hasData && state.lyrics.synced && !lines.empty() &&
-            state.lyrics.matchedTitle == state.media.title &&
-            state.lyrics.matchedArtist == state.media.artist;
-
-        if (!usable) {
-            sideLyricIdx_ = -2;
-            sideLyricCur_ = CollapsedLyricLine{};
-            sideLyricPrev_ = CollapsedLyricLine{};
-
-            const wchar_t* msg =
-                state.lyrics.fetching ? Loc(L"Fetching lyrics...") : Loc(L"No lyrics found");
-            float opacity = 0.60f;
-            if (state.lyrics.fetching) {
-                opacity = 0.50f + 0.25f * std::sin(static_cast<float>(now * 2.0 * 3.14159265 * 0.6));
-            }
-            DWRITE_TEXT_METRICS tm{};
-            if (auto layout = MakeLineLayout(msg, textFormat_.Get(), textW, &tm, true)) {
-                mutedBrush_->SetOpacity(opacity);
-                target_->DrawTextLayout(
-                    D2D1::Point2F(textLeft, (area.top + area.bottom) * 0.5f - tm.height * 0.5f),
-                    layout.Get(), mutedBrush_.Get(), D2D1_DRAW_TEXT_OPTIONS_NONE);
-            }
-        } else {
-            // Same position math as the Lyrics tab, including the lookahead nudge.
-            double posSec = state.media.positionTicks / 10000000.0;
-            if (state.media.playing && state.media.lastUpdatedTicks > 0) {
-                posSec += (GetTickCount64() - state.media.lastUpdatedTicks) / 1000.0;
-            }
-            if (state.media.playing) {
-                posSec += LyricsLookaheadSec();
-                            }
-                            const int64_t posMs = std::max<int64_t>(0, static_cast<int64_t>(posSec * 1000.0));
-
-            int lo = 0;
-            int hi = static_cast<int>(lines.size());
-            while (lo < hi) {
-                const int mid = (lo + hi) / 2;
-                if (lines[mid].timeMs <= posMs) {
-                    lo = mid + 1;
-                } else {
-                    hi = mid;
-                }
-            }
-            const int idx = lo - 1;  // -1 = before the first line
-
-            const float midTop = area.top + 46.0f;
-            const float midH = std::max(20.0f, (area.bottom - 46.0f) - midTop);
-
-            const bool styleChanged = std::fabs(sideLyricScale_ - settings.textScale) > 0.001f ||
-                                      sideLyricFamily_ != settings.fontFamily;
-            const bool trackChanged = state.media.title != sideLyricTitle_ ||
-                                      state.media.artist != sideLyricArtist_;
-
-            if (idx != sideLyricIdx_ || styleChanged || trackChanged || !sideLyricCur_.layout) {
-                if (styleChanged || trackChanged || !fresh || sideLyricIdx_ == -2) {
-                    sideLyricPrev_ = CollapsedLyricLine{};
-                    sideLyricAnimStart_ = now - 10.0;  // snap, no animation
-                } else {
-                    sideLyricPrev_ = std::move(sideLyricCur_);
-                    sideLyricAnimStart_ = now;
-                }
-                sideLyricIdx_ = idx;
-                sideLyricTitle_ = state.media.title;
-                sideLyricArtist_ = state.media.artist;
-                sideLyricScale_ = settings.textScale;
-                sideLyricFamily_ = settings.fontFamily;
-
-                const std::wstring text = (idx >= 0 && !lines[idx].text.empty())
-                                              ? lines[idx].text
-                                              : std::wstring(L"\u266A");
-                BuildSideLyricLine(sideLyricCur_, text, textW, midH, settings);
-            }
-
-            // Ease-out-cubic transition.
-            const float t = Clamp(static_cast<float>((now - sideLyricAnimStart_) / kAnimSec), 0.0f, 1.0f);
-            if (t < 1.0f) {
-                g_layoutDirty = true;  // keep frames coming until it settles
-            }
-            const float inv = 1.0f - t;
-            const float e = 1.0f - inv * inv * inv;
-
-            auto drawDim = [&](int lineIdx, float centerY) {
-                if (lineIdx < 0 || lineIdx >= static_cast<int>(lines.size())) {
-                    return;
-                }
-                const std::wstring& s = lines[lineIdx].text;
-                if (s.empty()) {
-                    return;
-                }
-                DWRITE_TEXT_METRICS tm{};
-                if (auto layout = MakeLineLayout(s, smallTextFormat_.Get(), textW, &tm, true)) {
-                    mutedBrush_->SetOpacity(0.50f * e);
-                    target_->DrawTextLayout(D2D1::Point2F(textLeft, centerY - tm.height * 0.5f),
-                                            layout.Get(), mutedBrush_.Get(),
-                                            D2D1_DRAW_TEXT_OPTIONS_NONE);
-                }
-            };
-            drawDim(idx - 1, area.top + 26.0f);
-            drawDim(idx + 1, area.bottom - 26.0f);
-
-            target_->PushAxisAlignedClip(
-                D2D1::RectF(area.left, area.top + 40.0f, area.right, area.bottom - 40.0f),
-                D2D1_ANTIALIAS_MODE_PER_PRIMITIVE);
-
-            // Outgoing line rises and fades slightly faster than the new one arrives.
-            if (t < 1.0f && sideLyricPrev_.layout) {
-                const CollapsedLyricLine& p = sideLyricPrev_;
-                const float y = midTop + std::max(0.0f, (midH - p.height) * 0.5f) - e * kSlidePx;
-                textBrush_->SetOpacity(0.90f * (1.0f - Clamp(t * 1.6f, 0.0f, 1.0f)));
-                target_->DrawTextLayout(D2D1::Point2F(textLeft, y), p.layout.Get(), textBrush_.Get(),
-                                        D2D1_DRAW_TEXT_OPTIONS_NONE);
-            }
-
-            if (sideLyricCur_.layout) {
-                const CollapsedLyricLine& c = sideLyricCur_;
-                const float y = midTop + std::max(0.0f, (midH - c.height) * 0.5f) + (1.0f - e) * kSlidePx;
-                textBrush_->SetOpacity(0.97f * e);
-                target_->DrawTextLayout(D2D1::Point2F(textLeft, y), c.layout.Get(), textBrush_.Get(),
-                                        D2D1_DRAW_TEXT_OPTIONS_NONE);
-            }
-
-            target_->PopAxisAlignedClip();
-        }
-
-        if (fadeLayer) {
-            target_->PopLayer();
-        } else {
-            target_->PopAxisAlignedClip();
         }
         textBrush_->SetOpacity(0.96f);
         mutedBrush_->SetOpacity(0.75f);
@@ -19040,7 +19901,7 @@ class Renderer {
         mutedBrush_->SetOpacity(0.58f);
     }
 
-    void DrawBrightness(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawBrightness(const SharedState& state, D2D1_RECT_F rect, const Settings& /*settings*/) {
         wchar_t value[32] = {};
         swprintf_s(value, L"%d%%", state.brightness.percent);
         DrawLevelBanner(rect, L"\uE706", Loc(L"Brightness"), value,
@@ -19341,14 +20202,15 @@ class Renderer {
     }
 
     // Status-card countdown — same strip + same Modules.MediaPillProgress gate.
-    void DrawCountdownProgress(D2D1_RECT_F rect, float progress, float alpha = 1.0f) {
-        if (!g_settings.mediaPillProgress) {
+    void DrawCountdownProgress(D2D1_RECT_F rect, float progress, const Settings& settings,
+                               float alpha = 1.0f) {
+        if (!settings.mediaPillProgress) {
             return;
         }
         DrawFlushProgressStrip(rect, progress, alpha);
     }
 
-    void DrawClipboard(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawClipboard(const SharedState& state, D2D1_RECT_F rect, const Settings& settings) {
         if (rect.bottom - rect.top < 40.0f || rect.right - rect.left < 100.0f) return;
         const double now = NowSeconds();
         const float ttl = 2.5f;
@@ -19395,7 +20257,7 @@ class Renderer {
         }
 
         const float tx = badge.right + 14.0f;
-        const bool showBar = g_settings.mediaPillProgress;
+        const bool showBar = settings.mediaPillProgress;
         D2D1_RECT_F titleRect = showBar
             ? D2D1::RectF(tx, cy - 18.0f, rect.right - 14.0f, cy - 2.0f)
             : D2D1::RectF(tx, cy - 16.0f, rect.right - 14.0f, cy - 1.0f);
@@ -19414,11 +20276,11 @@ class Renderer {
         DrawMarqueeText(state.clipboard.text.empty() ? std::wstring(Loc(L"Copied")) : state.clipboard.text,
                         textRect, textFormat_.Get(), textBrush_.Get(), now, 34.0f, marqueeClipboardCache_);
 
-        DrawCountdownProgress(rect, progress);
+        DrawCountdownProgress(rect, progress, settings);
         mutedBrush_->SetOpacity(0.58f);
     }
 
-    void DrawNotification(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawNotification(const SharedState& state, D2D1_RECT_F rect, const Settings& settings) {
         if (rect.bottom - rect.top < 48.0f || rect.right - rect.left < 120.0f) return;
         const double now = NowSeconds();
         const float ttl = 4.0f;
@@ -19470,7 +20332,7 @@ class Renderer {
         }
 
         const float tx = badge.right + 14.0f;
-        const bool showBar = g_settings.mediaPillProgress;
+        const bool showBar = settings.mediaPillProgress;
         D2D1_RECT_F appRect = showBar
             ? D2D1::RectF(tx, cy - 18.0f, rect.right - 14.0f, cy - 2.0f)
             : D2D1::RectF(tx, cy - 16.0f, rect.right - 14.0f, cy - 1.0f);
@@ -19488,11 +20350,11 @@ class Renderer {
                         titleRect, textFormat_.Get(), textBrush_.Get(), now, 28.0f, marqueeNotificationCache_);
         textBrush_->SetOpacity(0.90f);
 
-        DrawCountdownProgress(rect, progress);
+        DrawCountdownProgress(rect, progress, settings);
         mutedBrush_->SetOpacity(0.50f);
     }
 
-    void DrawVolume(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawVolume(const SharedState& state, D2D1_RECT_F rect, const Settings& /*settings*/) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 140.0f) return;
         const bool muted = state.volume.muted || state.volume.percent == 0;
         const float cy = (rect.top + rect.bottom) * 0.5f;
@@ -19563,7 +20425,7 @@ class Renderer {
         mutedBrush_->SetOpacity(0.58f);
     }
 
-    void DrawTimer(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawTimer(const SharedState& state, D2D1_RECT_F rect, const Settings& /*settings*/) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 140.0f) return;
         const double now = NowSeconds();
         double remaining = state.timer.justFinished
@@ -19653,7 +20515,93 @@ class Renderer {
         mutedBrush_->SetOpacity(0.58f);
     }
 
-    void DrawCapsLock(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawCall(const SharedState& state, D2D1_RECT_F rect, const Settings& settings, double now) {
+        if (rect.bottom - rect.top < 20.0f || rect.right - rect.left < 80.0f) {
+            g_callControlsLive.store(false, std::memory_order_relaxed);
+            return;
+        }
+
+        // Same diameter as the collapsed Media album art (44px pill − 6px pad × 2).
+        // Don't grow with a shared expanded bay height — that crushed the text.
+        const float cy = (rect.top + rect.bottom) * 0.5f;
+        constexpr float kCallBadgeSize = 32.0f;
+        const float badgeSz = kCallBadgeSize;
+        D2D1_RECT_F badge = D2D1::RectF(rect.left + 12.0f, cy - badgeSz * 0.5f,
+                                        rect.left + 12.0f + badgeSz, cy + badgeSz * 0.5f);
+        const float br = badgeSz * 0.5f;
+
+        const float pulse =
+            settings.privacyDotsPulse
+                ? (0.55f + 0.45f * (0.5f + 0.5f * std::sin(static_cast<float>(now) * 3.2f)))
+                : 1.0f;
+        ComPtr<ID2D1SolidColorBrush> badgeBg;
+        D2D1_COLOR_F green = D2D1::ColorF(0.23f, 0.78f, 0.42f, 0.35f + 0.45f * pulse);
+        target_->CreateSolidColorBrush(green, &badgeBg);
+        target_->FillRoundedRectangle(D2D1::RoundedRect(badge, br, br), badgeBg.Get());
+
+        const wchar_t* phone = usingFluentIcons_ ? L"\uE717" : L"\uE717";
+        textBrush_->SetOpacity(0.95f);
+        if (iconFormat_) {
+            iconFormat_->SetTextAlignment(DWRITE_TEXT_ALIGNMENT_CENTER);
+            iconFormat_->SetParagraphAlignment(DWRITE_PARAGRAPH_ALIGNMENT_CENTER);
+            target_->DrawTextW(phone, 1, iconFormat_.Get(), badge, textBrush_.Get(),
+                               D2D1_DRAW_TEXT_OPTIONS_CLIP);
+        }
+
+        const double elapsed = std::max(0.0, now - state.call.startedAt);
+        const int totalSec = static_cast<int>(elapsed);
+        wchar_t timeBuf[32] = {};
+        if (totalSec >= 3600) {
+            swprintf_s(timeBuf, L"%d:%02d:%02d", totalSec / 3600, (totalSec / 60) % 60,
+                       totalSec % 60);
+        } else {
+            swprintf_s(timeBuf, L"%d:%02d", totalSec / 60, totalSec % 60);
+        }
+
+        // Status only: server (muted) + channel · elapsed (bold). Click focuses Discord.
+        const std::wstring channel =
+            state.call.channelName.empty() ? L"In a call" : state.call.channelName;
+        const std::wstring subtitle =
+            state.call.guildName.empty()
+                ? (state.call.source == CallDetectSource::Rpc ? L"Discord" : L"Discord Voice")
+                : state.call.guildName;
+        std::wstring primary = channel;
+        primary += L"  ·  ";
+        primary += timeBuf;
+
+        const float tx = badge.right + 12.0f;
+        const float textRight = rect.right - 12.0f;
+        if (textRight - tx >= 24.0f) {
+            mutedBrush_->SetOpacity(0.55f);
+            D2D1_RECT_F titleRect = D2D1::RectF(tx, cy - 15.0f, textRight, cy - 1.0f);
+            target_->DrawTextW(subtitle.c_str(), static_cast<UINT32>(subtitle.size()),
+                               smallTextFormat_.Get(), titleRect, mutedBrush_.Get(),
+                               D2D1_DRAW_TEXT_OPTIONS_CLIP);
+
+            textBrush_->SetOpacity(0.95f);
+            D2D1_RECT_F timeRect = D2D1::RectF(tx, cy - 1.0f, textRight, cy + 15.0f);
+            target_->DrawTextW(primary.c_str(), static_cast<UINT32>(primary.size()),
+                               textFormat_.Get(), timeRect, textBrush_.Get(),
+                               D2D1_DRAW_TEXT_OPTIONS_CLIP);
+        }
+
+        const unsigned seq = g_callHitSeq.load(std::memory_order_relaxed);
+        g_callHitSeq.store(seq + 1, std::memory_order_relaxed);
+        g_callHitBayL.store(rect.left, std::memory_order_relaxed);
+        g_callHitBayT.store(rect.top, std::memory_order_relaxed);
+        g_callHitBayR.store(rect.right, std::memory_order_relaxed);
+        g_callHitBayB.store(rect.bottom, std::memory_order_relaxed);
+        g_callHitScale.store(std::max(0.05f, settings.sizeScale), std::memory_order_relaxed);
+        g_callControlsLive.store(false, std::memory_order_relaxed);
+        g_callHitMuteL.store(0); g_callHitMuteT.store(0); g_callHitMuteR.store(0); g_callHitMuteB.store(0);
+        g_callHitDeafL.store(0); g_callHitDeafT.store(0); g_callHitDeafR.store(0); g_callHitDeafB.store(0);
+        g_callHitLeaveL.store(0); g_callHitLeaveT.store(0); g_callHitLeaveR.store(0); g_callHitLeaveB.store(0);
+        g_callHitSeq.store(seq + 2, std::memory_order_relaxed);
+        mutedBrush_->SetOpacity(0.58f);
+        textBrush_->SetOpacity(0.90f);
+    }
+
+    void DrawCapsLock(const SharedState& state, D2D1_RECT_F rect, const Settings& /*settings*/) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 110.0f) return;
         const float cy = (rect.top + rect.bottom) * 0.5f;
         const float badgeSz = (rect.bottom - rect.top) - 16.0f;
@@ -19717,7 +20665,7 @@ class Renderer {
         }
     }
 
-    void DrawDevice(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawDevice(const SharedState& state, D2D1_RECT_F rect, const Settings& settings) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 100.0f) return;
         const float cy = (rect.top + rect.bottom) * 0.5f;
         const bool connected = (state.device.eventType == DeviceEventType::Connected);
@@ -19754,7 +20702,7 @@ class Renderer {
         target_->FillEllipse(D2D1::Ellipse(dotCenter, 4.5f, 4.5f), dotBrush.Get());
 
         const float tx = badge.right + 14.0f;
-        const bool showBar = g_settings.mediaPillProgress;
+        const bool showBar = settings.mediaPillProgress;
         const double now = NowSeconds();
         const float ttl = 3.0f;
         const float remaining = Clamp(static_cast<float>(state.device.expiresAt - now), 0.0f, ttl);
@@ -19781,11 +20729,11 @@ class Renderer {
                            D2D1_DRAW_TEXT_OPTIONS_CLIP);
         textBrush_->SetOpacity(0.90f);
 
-        DrawCountdownProgress(rect, progress);
+        DrawCountdownProgress(rect, progress, settings);
         mutedBrush_->SetOpacity(0.58f);
     }
 
-    void DrawDoNotDisturb(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawDoNotDisturb(const SharedState& state, D2D1_RECT_F rect, const Settings& settings) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 110.0f) return;
         const float cy = (rect.top + rect.bottom) * 0.5f;
         const float badgeSz = (rect.bottom - rect.top) - 16.0f;
@@ -19843,7 +20791,7 @@ class Renderer {
         const float ttl = 3.0f;
         const float remaining = Clamp(static_cast<float>(state.doNotDisturb.expiresAt - now), 0.0f, ttl);
         const float progress = remaining / ttl;
-        DrawCountdownProgress(rect, progress);
+        DrawCountdownProgress(rect, progress, settings);
         mutedBrush_->SetOpacity(0.58f);
         textBrush_->SetOpacity(0.90f);
     }
@@ -19884,7 +20832,7 @@ class Renderer {
         textBrush_->SetOpacity(0.90f);
     }
 
-    void DrawBluetoothDevice(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawBluetoothDevice(const SharedState& state, D2D1_RECT_F rect, const Settings& settings) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 140.0f) return;
         const double now = NowSeconds();
         const float ttl = 4.0f;
@@ -19893,7 +20841,7 @@ class Renderer {
 
         const bool connected = state.bluetoothDevice.connected;
         const int battery = state.bluetoothDevice.batteryPercent;
-        const bool hasBattery = g_settings.bluetoothShowBattery && battery >= 0;
+        const bool hasBattery = settings.bluetoothShowBattery && battery >= 0;
 
         const float cy = (rect.top + rect.bottom) * 0.5f;
         const float badgeSz = (rect.bottom - rect.top) - 16.0f;
@@ -19916,7 +20864,7 @@ class Renderer {
         target_->FillEllipse(D2D1::Ellipse(dotCenter, 4.5f, 4.5f), dotBrush.Get());
 
         const float tx = badge.right + 14.0f;
-        const bool showBar = g_settings.mediaPillProgress;
+        const bool showBar = settings.mediaPillProgress;
         const float rightEdge = hasBattery ? rect.right - 62.0f : rect.right - 14.0f;
 
         mutedBrush_->SetOpacity(0.50f);
@@ -19979,7 +20927,7 @@ class Renderer {
             }
         }
 
-        DrawCountdownProgress(rect, progress);
+        DrawCountdownProgress(rect, progress, settings);
         mutedBrush_->SetOpacity(0.58f);
         textBrush_->SetOpacity(0.90f);
     }
@@ -20520,14 +21468,14 @@ class Renderer {
         if (h < 24.0f || w < 100.0f) return;
 
         // Hit tests (clicks, hover, cursor) map through this rect.
-        PublishContentGeometry(rect);
+        PublishContentGeometry(rect, settings);
 
         const float need = MeasureLookupCard(state, settings);
         const float alpha = SmoothStep01((h - need * 0.55f) / (need * 0.45f));
         if (alpha <= 0.01f) return;  // island still too small; content fades in as it opens
 
         ComPtr<ID2D1Geometry> mask =
-            CreateIslandMaskGeometry(rect, ContentIslandRadius(h), settings.notchStyle);
+            CreateIslandMaskGeometry(rect, ContentIslandRadius(h, settings), settings.notchStyle);
         ID2D1Layer* layer = AcquireLayer();
         const bool masked = mask && layer;
         if (masked) {
@@ -20566,7 +21514,7 @@ class Renderer {
     std::wstring lookupFormatFamily_;
     LookupFit lookupFit_;
 
-    void DrawBattery(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawBattery(const SharedState& state, D2D1_RECT_F rect, const Settings& /*settings*/) {
         if (rect.bottom - rect.top < 24.0f || rect.right - rect.left < 140.0f) return;
         const float cy = (rect.top + rect.bottom) * 0.5f;
         const float badgeSz = (rect.bottom - rect.top) - 16.0f;
@@ -20633,7 +21581,7 @@ class Renderer {
         textBrush_->SetOpacity(0.90f);
     }
 
-    void DrawProgress(const SharedState& state, D2D1_RECT_F rect) {
+    void DrawProgress(const SharedState& state, D2D1_RECT_F rect, const Settings& /*settings*/) {
         wchar_t buffer[64] = {};
         swprintf_s(buffer, L"Progress %d%%", state.progress.percent);
         IDWriteTextFormat* fmt = idleTextFormat_ ? idleTextFormat_.Get() : textFormat_.Get();
@@ -20753,17 +21701,6 @@ class Renderer {
     std::wstring collapsedLyricTitle_;
     std::wstring collapsedLyricArtist_;
     double collapsedLyricAnimStart_ = -10.0;
-
-    // ── Media-tab lyrics panel state ─────────────────────────────────────────
-    CollapsedLyricLine sideLyricCur_;
-    CollapsedLyricLine sideLyricPrev_;
-    int sideLyricIdx_ = -2;                 // -2 = nothing built yet (forces a snap)
-    std::wstring sideLyricTitle_;
-    std::wstring sideLyricArtist_;
-    std::wstring sideLyricFamily_;
-    float sideLyricScale_ = -1.0f;
-    double sideLyricAnimStart_ = -10.0;
-    double sideLyricLastDrawn_ = -1.0;
 
     // ── Immersive lyrics state ───────────────────────────────────────────────
     float immersiveMixLin_ = 0.0f;
@@ -20977,6 +21914,12 @@ Activity ActivityForKind(IslandKind kind, const Settings& settings, const Shared
             activity.width = 260.0f;
             activity.height = 54.0f;
             break;
+        case IslandKind::Call:
+            // Status-only card (label + elapsed). Compact when a popup shares the island.
+            // Match collapsed Media pill height so Call+Media shares one even row.
+            activity.width = state.call.compact ? 128.0f : 220.0f;
+            activity.height = 44.0f;
+            break;
         case IslandKind::DoNotDisturb:
             activity.width = 220.0f;
             activity.height = 42.0f;
@@ -21010,77 +21953,180 @@ Activity ActivityForKind(IslandKind kind, const Settings& settings, const Shared
     return activity;
 }
 
+// Builds up to three bays in fixed order: transient (left) → ongoing (middle) →
+// companion Media (trailing). Lookup still owns the island alone.
 std::vector<IslandKind> ChooseActivities(const SharedState& state, const Settings& settings, double now) {
-    std::vector<IslandKind> activities;
-
     if (settings.quickLookup && state.lookup.active && now < state.lookup.expiresAt) {
-        activities.push_back(IslandKind::Lookup);
+        return {IslandKind::Lookup};
     }
 
-    if (state.clipboard.active && now < state.clipboard.expiresAt) {
-        activities.push_back(IslandKind::Clipboard);
+    std::optional<IslandKind> transient;
+    if (settings.clipboard && state.clipboard.active && now < state.clipboard.expiresAt) {
+        transient = IslandKind::Clipboard;
+    } else if (settings.capsLock && state.capsLock.active && now < state.capsLock.expiresAt) {
+        transient = IslandKind::CapsLock;
+    } else if (state.device.active && now < state.device.expiresAt) {
+        transient = IslandKind::Device;
+    } else if (settings.bluetoothIndicator && state.bluetoothDevice.active &&
+               now < state.bluetoothDevice.expiresAt) {
+        transient = IslandKind::Bluetooth;
+    } else if (settings.doNotDisturbIndicator && state.doNotDisturb.active &&
+               now < state.doNotDisturb.expiresAt) {
+        transient = IslandKind::DoNotDisturb;
+    } else if (settings.volume && state.volume.active && now < state.volume.expiresAt) {
+        transient = IslandKind::Volume;
+    } else if (settings.brightness && state.brightness.active && now < state.brightness.expiresAt) {
+        transient = IslandKind::Brightness;
+    } else if (state.notification.active && now < state.notification.expiresAt) {
+        transient = IslandKind::Notification;
+    } else if (settings.battery && state.battery.active && now < state.battery.expiresAt) {
+        transient = IslandKind::BatteryLow;
+    } else if (settings.progress && state.progress.active) {
+        transient = IslandKind::Progress;
     }
-    // settings.capsLock is checked here, like every other module above and below.
-    // Leaving it out was what made the Caps Lock toggle not actually work: the
-    // handler gate stopped the nudge but the pill was still selected and drawn.
-    if (settings.capsLock && state.capsLock.active && now < state.capsLock.expiresAt) {
-        activities.push_back(IslandKind::CapsLock);
+
+    std::optional<IslandKind> ongoing;
+    if (settings.discordVoice && state.call.active) {
+        ongoing = IslandKind::Call;
+    } else if (settings.timerEnabled &&
+               ((state.timer.justFinished && now < state.timer.finishedExpiresAt) ||
+                state.timer.active)) {
+        ongoing = IslandKind::Timer;
     }
-    if (state.device.active && now < state.device.expiresAt) {
-        activities.push_back(IslandKind::Device);
-    }
-    if (settings.bluetoothIndicator && state.bluetoothDevice.active &&
-        now < state.bluetoothDevice.expiresAt) {
-        activities.push_back(IslandKind::Bluetooth);
-    }
-    if (settings.doNotDisturbIndicator && state.doNotDisturb.active &&
-        now < state.doNotDisturb.expiresAt) {
-        activities.push_back(IslandKind::DoNotDisturb);
-    }
-    if (settings.volume && state.volume.active && now < state.volume.expiresAt) {
-        activities.push_back(IslandKind::Volume);
-    }
-    if (settings.brightness && state.brightness.active && now < state.brightness.expiresAt) {
-        activities.push_back(IslandKind::Brightness);
-    }
-    if (state.notification.active && now < state.notification.expiresAt) {
-        activities.push_back(IslandKind::Notification);
-    }
-    if (settings.battery && state.battery.active && now < state.battery.expiresAt) {
-        activities.push_back(IslandKind::BatteryLow);
-    }
-    if (settings.progress && state.progress.active) {
-        activities.push_back(IslandKind::Progress);
-    }
-    if (settings.timerEnabled &&
-        ((state.timer.justFinished && now < state.timer.finishedExpiresAt) ||
-         state.timer.active)) {
-        activities.push_back(IslandKind::Timer);
-    }
+
+    std::optional<IslandKind> companion;
     if (settings.media && state.media.available) {
-        activities.push_back(IslandKind::Media);
+        companion = IslandKind::Media;
     }
 
+    std::vector<IslandKind> activities;
+    if (transient) {
+        activities.push_back(*transient);
+    }
+    if (ongoing) {
+        activities.push_back(*ongoing);
+    }
+    if (companion) {
+        activities.push_back(*companion);
+    }
     if (activities.empty()) {
         activities.push_back(IslandKind::Idle);
     }
+    return activities;
+}
 
-    // Apple-style pairing: one status/alert stays primary, and ongoing media is
-    // kept as the companion instead of being dropped when two alerts fire.
-    // Lookup still owns the island alone (handled later by clearing secondary).
-    const auto mediaIt = std::find(activities.begin(), activities.end(), IslandKind::Media);
-    if (mediaIt != activities.end() && activities.size() >= 2 &&
-        activities.front() != IslandKind::Media) {
-        activities.erase(mediaIt);
-        if (activities.size() > 1) {
-            activities.resize(1);
+// Sizes primary/secondary activities for the current frame (idle strip measure,
+// game overlay, media pill/expanded, lookup card height).
+void ApplyFrameActivitySizing(Renderer& renderer,
+                              Activity& primary,
+                              std::optional<Activity>& secondary,
+                              std::optional<Activity>& tertiary,
+                              const SharedState& snapshot,
+                              const Settings& frameSettings,
+                              double now,
+                              bool isFullscreen,
+                              bool pinned,
+                              bool isHoverExpanded,
+                              bool recentTrackChange) {
+    if (primary.kind == IslandKind::Idle) {
+        if (!isFullscreen && (pinned || isHoverExpanded)) {
+            primary.width = MediaLayout::kExpandedWidth * frameSettings.sizeScale;
+            primary.height = MediaLayout::kExpandedHeight * frameSettings.sizeScale;
+        } else if (primary.width > 0.0f) {
+            // Collapsed: size the strip to the text it will actually render
+            // (windhawk-mods#5086).
+            primary.width =
+                renderer.MeasureIdleStrip(snapshot, frameSettings, now).totalWidth *
+                frameSettings.sizeScale;
         }
-        activities.push_back(IslandKind::Media);
-    } else if (activities.size() > 2) {
-        activities.resize(2);
+    }
+    if (!isFullscreen && primary.kind == IslandKind::Idle &&
+        (frameSettings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0)) {
+        const int metricCount = (frameSettings.gameOverlayShowCpu ? 1 : 0) +
+                                (frameSettings.gameOverlayShowRam ? 1 : 0) +
+                                (frameSettings.gameOverlayShowGpu ? 1 : 0) +
+                                (frameSettings.gameOverlayShowDisk ? 1 : 0);
+        const bool compact = frameSettings.gameOverlayCompact;
+        primary.width = GameOverlayLayout::Width(compact, frameSettings.gameOverlayShowFps,
+                                                 metricCount) * frameSettings.sizeScale;
+        primary.height = GameOverlayLayout::For(compact).height * frameSettings.sizeScale;
     }
 
-    return activities;
+    auto applyMediaWidth = [&](Activity& activity, bool allowExpand) {
+        if (activity.kind != IslandKind::Media) {
+            return;
+        }
+        if (!isFullscreen && allowExpand && (isHoverExpanded || pinned || recentTrackChange)) {
+            activity.width = MediaLayout::kExpandedWidth * frameSettings.sizeScale;
+            activity.height = MediaLayout::kExpandedHeight * frameSettings.sizeScale;
+            return;
+        }
+        const float clockSection = frameSettings.mediaPillClock
+            ? renderer.MeasureMediaPill(snapshot, frameSettings).sectionWidth
+            : 0.0f;
+        if (CollapsedLyricsActive(snapshot, frameSettings)) {
+            activity.width = (kCollapsedLyricsWidth + clockSection) * frameSettings.sizeScale;
+        } else if (CollapsedMetaActive(snapshot, frameSettings)) {
+            activity.width = (kCollapsedMetaWidth + clockSection) * frameSettings.sizeScale;
+        } else if (frameSettings.mediaPillClock) {
+            activity.width = (MediaPillLayout::kBaseWidth + clockSection) * frameSettings.sizeScale;
+        }
+    };
+    // Media may sit in any bay (Call/Timer take the middle; Media trails).
+    // Expand whichever bay holds it — secondary used to be locked collapsed.
+    applyMediaWidth(primary, /*allowExpand=*/true);
+    if (secondary) {
+        applyMediaWidth(*secondary, /*allowExpand=*/true);
+    }
+    if (tertiary) {
+        applyMediaWidth(*tertiary, /*allowExpand=*/true);
+    }
+
+    // Call/Timer alone replace Idle, so hover/pin would stay on a mini chip.
+    // Keep the chip and open the Idle dashboard beside it.
+    if (!isFullscreen && (isHoverExpanded || pinned)) {
+        const bool hasMedia =
+            primary.kind == IslandKind::Media ||
+            (secondary && secondary->kind == IslandKind::Media) ||
+            (tertiary && tertiary->kind == IslandKind::Media);
+        const bool ongoingAlone =
+            !hasMedia && !secondary && !tertiary &&
+            (primary.kind == IslandKind::Call || primary.kind == IslandKind::Timer);
+        if (ongoingAlone) {
+            Activity idle{};
+            idle.kind = IslandKind::Idle;
+            idle.width = MediaLayout::kExpandedWidth * frameSettings.sizeScale;
+            idle.height = MediaLayout::kExpandedHeight * frameSettings.sizeScale;
+            secondary = idle;
+            primary.height = idle.height;
+        }
+    }
+
+    if (secondary || tertiary) {
+        float sharedH = primary.height;
+        if (secondary) {
+            sharedH = std::max(sharedH, secondary->height);
+        }
+        if (tertiary) {
+            sharedH = std::max(sharedH, tertiary->height);
+        }
+        primary.height = sharedH;
+        if (secondary) {
+            secondary->height = sharedH;
+        }
+        if (tertiary) {
+            tertiary->height = sharedH;
+        }
+    }
+
+    if (primary.kind == IslandKind::Lookup) {
+        secondary.reset();
+        tertiary.reset();
+        if (primary.width > 1.0f) {
+            primary.height = renderer.MeasureLookupCard(snapshot, frameSettings) *
+                             frameSettings.sizeScale;
+        }
+    }
 }
 
 constexpr UINT WM_APP_CAPSLOCK = WM_APP + 0x444;
@@ -21917,6 +22963,39 @@ void StartFileTrayDrag(const std::wstring& path) {
     }
 }
 
+// === Window / WndProc / render loop ===
+
+// True when the cursor is over a clickable media or file-tray control.
+bool OverlayWantsHandCursor(POINT clientPt) {
+    if (g_scrubbing.load()) {
+        return true;
+    }
+
+    bool mediaActive = false;
+    {
+        std::lock_guard lock(g_stateMutex);
+        mediaActive = g_settings.media && g_state.media.available;
+    }
+
+    const int currentTab = NormalizedTabIndex(g_settings);
+    if (mediaActive && currentTab == MediaTabIndex(g_settings)) {
+        const MediaContentPoint cp = MediaContentFromClient(clientPt.x, clientPt.y);
+        if (MediaArtHitTest(cp) || MediaTransportHitTest(cp) != -1 ||
+            MediaScrubFractionFromContent(cp) >= 0.0f ||
+            g_hoveredSourceSlot.load(std::memory_order_relaxed) >= 0 ||
+            (g_settings.mediaTabLyrics && MediaLyricsButtonHitTest(cp))) {
+            return true;
+        }
+    }
+
+    if (g_settings.fileTrayModule && currentTab == FileTrayTabIndex(g_settings) &&
+        (g_hoveredFileTrayRow.load(std::memory_order_relaxed) >= 0 ||
+         g_hoveredFileTrayAction.load(std::memory_order_relaxed) != -1)) {
+        return true;
+    }
+    return false;
+}
+
 LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
     static POINT s_touchStart = {0, 0};
     static ULONGLONG s_touchStartTime = 0;
@@ -22186,31 +23265,7 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 POINT pt;
                 GetCursorPos(&pt);
                 ScreenToClient(hwnd, &pt);
-
-                bool mediaActive = false;
-                {
-                    std::lock_guard lock(g_stateMutex);
-                    mediaActive = g_settings.media && g_state.media.available;
-                }
-
-                const int currentTab = NormalizedTabIndex(g_settings);
-                if (mediaActive && currentTab == MediaTabIndex(g_settings)) {
-                    const MediaContentPoint cp = MediaContentFromClient(pt.x, pt.y);
-                    const bool hoverClickable = MediaArtHitTest(cp) ||
-                                               MediaTransportHitTest(cp) != -1 ||
-                                               MediaScrubFractionFromContent(cp) >= 0.0f ||
-                                               g_hoveredSourceSlot.load(std::memory_order_relaxed) >= 0 ||
-                                               (g_settings.mediaTabLyrics && MediaLyricsButtonHitTest(cp));
-                    if (hoverClickable) {
-                        SetCursor(LoadCursorW(nullptr, IDC_HAND));
-                        return TRUE;
-                    }
-                }
-
-                // A File Tray row under the cursor is clickable (opens the file).
-                if (g_settings.fileTrayModule && currentTab == FileTrayTabIndex(g_settings) &&
-                    (g_hoveredFileTrayRow.load(std::memory_order_relaxed) >= 0 ||
-                     g_hoveredFileTrayAction.load(std::memory_order_relaxed) != -1)) {
+                if (OverlayWantsHandCursor(pt)) {
                     SetCursor(LoadCursorW(nullptr, IDC_HAND));
                     return TRUE;
                 }
@@ -22336,6 +23391,14 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 mediaActive = g_settings.media && g_state.media.available;
             }
             const int currentTab = NormalizedTabIndex(g_settings);
+
+            {
+                const int callHit = CallControlHitTest(xPos, yPos);
+                const int callHover = (callHit >= 0 && callHit <= 2) ? callHit : -1;
+                if (g_hoveredCallButton.exchange(callHover) != callHover) {
+                    g_layoutDirty = true;
+                }
+            }
 
             int hoveredSlot = -1;
             if (mediaActive && currentTab == MediaTabIndex(g_settings)) {
@@ -22489,6 +23552,15 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     }
                 }
                 s_touchStartTime = 0;
+
+                {
+                    // Status card only — click focuses Discord.
+                    const int callHit = CallControlHitTest(xPos, yPos);
+                    if (callHit == 3) {
+                        FocusDiscordWindow();
+                        return 0;
+                    }
+                }
 
                 bool mediaActive = false;
                 if (HandleLookupClick(xPos, yPos)) {
@@ -22968,10 +24040,15 @@ DWORD WINAPI RenderThreadProc(void*) {
                     const bool stillFullscreen =
                         g_settings.autoHideFullscreen && IsForegroundFullscreen(hwnd);
                     g_isFullscreen.store(stillFullscreen, std::memory_order_relaxed);
+                    bool callWantsVisible = false;
+                    if (g_settings.discordVoice) {
+                        std::lock_guard lock(g_stateMutex);
+                        callWantsVisible = g_state.call.active;
+                    }
                     if (!stillFullscreen) {
                         g_fullscreenOverrideVisible = false;
                         g_autoHiddenParked = false;
-                    } else if (g_fullscreenOverrideVisible.load()) {
+                    } else if (g_fullscreenOverrideVisible.load() || callWantsVisible) {
                         g_autoHiddenParked = false;
                     }
                 } else {
@@ -23033,6 +24110,7 @@ DWORD WINAPI RenderThreadProc(void*) {
         }
         if (!pollBusy && now >= nextPrivacyPoll) {
             UpdatePrivacyIndicators();
+            UpdateActiveCall();
             nextPrivacyPoll = now + 2.0;  // poll every 2 s
         }
 
@@ -23085,21 +24163,48 @@ DWORD WINAPI RenderThreadProc(void*) {
                 TriggerNudge();
         }
 
+        // Snapshot settings once per frame so measure/draw never walk live
+        // g_settings wstrings while LoadSettings replaces the struct.
+        const Settings frameSettings = GetSettingsCopy();
+
         // Quick Lookup: hand keyboard focus back once the panel has timed out or the
         // module was switched off in settings.
         if (g_lookupUi.open &&
-            (!g_settings.quickLookup || !snapshot.lookup.active || now >= snapshot.lookup.expiresAt)) {
+            (!frameSettings.quickLookup || !snapshot.lookup.active || now >= snapshot.lookup.expiresAt)) {
             CloseLookupPanel(hwnd);
         }
 
-        const std::vector<IslandKind> kinds = ChooseActivities(snapshot, g_settings, now);
+        std::vector<IslandKind> kinds = ChooseActivities(snapshot, frameSettings, now);
         g_lyricsTabAvailable.store(
-            g_settings.lyrics && g_settings.media && snapshot.media.available,
+            frameSettings.lyrics && frameSettings.media && snapshot.media.available,
             std::memory_order_relaxed);
-        Activity primary = ActivityForKind(kinds[0], g_settings, snapshot);
+
+        // Compact the Call bay when a leading transient also shares the island.
+        {
+            bool hasTransient = false;
+            bool hasCall = false;
+            bool hasCompanion = false;
+            for (IslandKind k : kinds) {
+                if (k == IslandKind::Call) {
+                    hasCall = true;
+                } else if (k == IslandKind::Media) {
+                    hasCompanion = true;
+                } else if (k != IslandKind::Idle && k != IslandKind::Timer &&
+                           k != IslandKind::Lookup) {
+                    hasTransient = true;
+                }
+            }
+            snapshot.call.compact = hasCall && hasTransient && hasCompanion;
+        }
+
+        Activity primary = ActivityForKind(kinds[0], frameSettings, snapshot);
         std::optional<Activity> secondary;
+        std::optional<Activity> tertiary;
         if (kinds.size() >= 2) {
-            secondary = ActivityForKind(kinds[1], g_settings, snapshot);
+            secondary = ActivityForKind(kinds[1], frameSettings, snapshot);
+        }
+        if (kinds.size() >= 3) {
+            tertiary = ActivityForKind(kinds[2], frameSettings, snapshot);
         }
 
         const bool pinned = Wh_GetIntValue(L"PinnedExpanded", 0) != 0;
@@ -23112,7 +24217,7 @@ DWORD WINAPI RenderThreadProc(void*) {
                        kind == IslandKind::Volume || kind == IslandKind::Brightness ||
                        kind == IslandKind::BatteryLow || kind == IslandKind::CapsLock ||
                        kind == IslandKind::Device || kind == IslandKind::Bluetooth ||
-                       kind == IslandKind::DoNotDisturb;
+                       kind == IslandKind::DoNotDisturb || kind == IslandKind::Call;
             };
             const bool closingAlert = isStatusKind(previousPrimary) &&
                                       (primary.kind == IslandKind::Media ||
@@ -23180,6 +24285,10 @@ DWORD WINAPI RenderThreadProc(void*) {
                                        !snapshot.media.title.empty() &&
                                        (now - snapshot.media.titleChangedAt < 5.0);
 
+        const bool callActivityVisible =
+            primary.kind == IslandKind::Call ||
+            (secondary && secondary->kind == IslandKind::Call) ||
+            (tertiary && tertiary->kind == IslandKind::Call);
         bool isTransientAlert = (primary.kind == IslandKind::Clipboard ||
                                  primary.kind == IslandKind::Notification ||
                                  primary.kind == IslandKind::Volume ||
@@ -23190,6 +24299,7 @@ DWORD WINAPI RenderThreadProc(void*) {
                                  primary.kind == IslandKind::Bluetooth ||
                                  primary.kind == IslandKind::DoNotDisturb ||
                                  primary.kind == IslandKind::Lookup ||
+                                 callActivityVisible ||
                                  recentTrackChange);
 
         const bool unhideGraceActive = (now < g_hotkeyUnhideUntil.load());
@@ -23269,8 +24379,14 @@ DWORD WINAPI RenderThreadProc(void*) {
         // change in those numbers is worth repainting for.
         const int metricTabIdx = NormalizedTabIndex(g_settings);
         const bool onHardwareMonitorTab = (metricTabIdx == HardwareMonitorTabIndex(g_settings));
-        const bool hwMonitorVisible = (primary.kind == IslandKind::Idle || primary.kind == IslandKind::Media) &&
-            !isFullscreen && !gameMetricsPresent && (pinned || isHoverExpanded) && onHardwareMonitorTab;
+        const auto bayIsIdleOrMedia = [](const Activity& a) {
+            return a.kind == IslandKind::Idle || a.kind == IslandKind::Media;
+        };
+        const bool idleOrMediaVisible =
+            bayIsIdleOrMedia(primary) || (secondary && bayIsIdleOrMedia(*secondary)) ||
+            (tertiary && bayIsIdleOrMedia(*tertiary));
+        const bool hwMonitorVisible = idleOrMediaVisible && !isFullscreen && !gameMetricsPresent &&
+                                      (pinned || isHoverExpanded) && onHardwareMonitorTab;
         const bool gameOverlayVisible = gameMetricsPresent && !isFullscreen;
         const bool systemMetricsVisible = hwMonitorVisible || gameOverlayVisible;
 
@@ -23290,80 +24406,8 @@ DWORD WINAPI RenderThreadProc(void*) {
             nextSystemPoll = now + 1.0;
         }
 
-        if (primary.kind == IslandKind::Idle) {
-            if (!isFullscreen && (pinned || isHoverExpanded)) {
-                primary.width = MediaLayout::kExpandedWidth * g_settings.sizeScale;
-                primary.height = MediaLayout::kExpandedHeight * g_settings.sizeScale;
-            } else if (primary.width > 0.0f) {
-                // Collapsed: size the strip to the text it will actually render
-                // (windhawk-mods#5086). ActivityForKind's 96/170px was wrong both
-                // ways -- dead air around a short "9:41", and clipping on
-                // "10:41:32 PM" at larger Text size.
-                // The > 0 guard preserves ActivityForKind's fully-hidden case.
-                primary.width =
-                    renderer.MeasureIdleStrip(snapshot, g_settings, now).totalWidth *
-                    g_settings.sizeScale;
-            }
-        }
-        if (!isFullscreen && primary.kind == IslandKind::Idle &&
-            (g_settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0)) {
-            // Width follows the metrics actually enabled (#25) so switching some
-            // off shrinks the strip instead of leaving empty space, and compact
-            // mode narrows it enough to sit neatly in the taskbar area. Both the
-            // size and the painting come from GameOverlayLayout, so the strip
-            // cannot end up sized for a card width DrawGameOverlay no longer uses.
-            const int metricCount = (g_settings.gameOverlayShowCpu ? 1 : 0) +
-                                    (g_settings.gameOverlayShowRam ? 1 : 0) +
-                                    (g_settings.gameOverlayShowGpu ? 1 : 0) +
-                                    (g_settings.gameOverlayShowDisk ? 1 : 0);
-
-            const bool compact = g_settings.gameOverlayCompact;
-            primary.width = GameOverlayLayout::Width(compact, g_settings.gameOverlayShowFps,
-                                                     metricCount) * g_settings.sizeScale;
-            primary.height = GameOverlayLayout::For(compact).height * g_settings.sizeScale;
-        }
-        // Size collapsed/expanded media whether it is primary or the companion slot.
-        // Secondary used to stay at the 150px base width, which killed MediaPillMeta
-        // (title/artist fade in only after ~160px) whenever another module was up.
-        auto applyMediaWidth = [&](Activity& activity, bool allowExpand) {
-            if (activity.kind != IslandKind::Media) {
-                return;
-            }
-            if (!isFullscreen && allowExpand && (isHoverExpanded || pinned || recentTrackChange)) {
-                activity.width = MediaLayout::kExpandedWidth * g_settings.sizeScale;
-                activity.height = MediaLayout::kExpandedHeight * g_settings.sizeScale;
-                return;
-            }
-            const float clockSection = g_settings.mediaPillClock
-                ? renderer.MeasureMediaPill(snapshot, g_settings).sectionWidth
-                : 0.0f;
-            if (CollapsedLyricsActive(snapshot, g_settings)) {
-                activity.width = (kCollapsedLyricsWidth + clockSection) * g_settings.sizeScale;
-            } else if (CollapsedMetaActive(snapshot, g_settings)) {
-                activity.width = (kCollapsedMetaWidth + clockSection) * g_settings.sizeScale;
-            } else if (g_settings.mediaPillClock) {
-                activity.width = (MediaPillLayout::kBaseWidth + clockSection) * g_settings.sizeScale;
-            }
-        };
-        applyMediaWidth(primary, /*allowExpand=*/true);
-        if (secondary) {
-            // Companion media stays collapsed — Apple's "minimal" trailing slot.
-            applyMediaWidth(*secondary, /*allowExpand=*/false);
-            // One shared height so leading/trailing content share the silhouette.
-            const float sharedH = std::max(primary.height, secondary->height);
-            primary.height = sharedH;
-            secondary->height = sharedH;
-        }
-
-        if (primary.kind == IslandKind::Lookup) {
-            secondary.reset();  // the panel stands alone (see HandleLookupClick)
-            if (primary.width > 1.0f) {
-                // The Lookup card is sized to its (wrapped, line-capped) content.
-                const Settings lookupSettings = GetSettingsCopy();
-                primary.height = renderer.MeasureLookupCard(snapshot, lookupSettings) *
-                                 lookupSettings.sizeScale;
-            }
-        }
+        ApplyFrameActivitySizing(renderer, primary, secondary, tertiary, snapshot, frameSettings, now,
+                                 isFullscreen, pinned, isHoverExpanded, recentTrackChange);
 
         // Startup / hotkey grace also blocks fullscreen hide: otherwise compiling
         // in Windhawk (foreground, often monitor-sized) parks the island before
@@ -23375,20 +24419,28 @@ DWORD WINAPI RenderThreadProc(void*) {
             primary.width = 0.0f;
             primary.height = 0.0f;
             secondary.reset();
+            tertiary.reset();
         }
 
+        const auto bayIsMedia = [](const Activity& a) {
+            return a.kind == IslandKind::Media && a.width > 1.0f && a.height > 1.0f;
+        };
         const bool mediaWaveformVisible =
-            g_settings.media && snapshot.media.playing &&
-            ((primary.kind == IslandKind::Media && primary.width > 1.0f && primary.height > 1.0f) ||
-             (secondary && secondary->kind == IslandKind::Media && secondary->width > 1.0f && secondary->height > 1.0f));
+            frameSettings.media && snapshot.media.playing &&
+            (bayIsMedia(primary) || (secondary && bayIsMedia(*secondary)) ||
+             (tertiary && bayIsMedia(*tertiary)));
         g_audioCaptureNeeded.store(mediaWaveformVisible, std::memory_order_relaxed);
 
         float targetWidth = primary.width;
         float targetHeight = primary.height;
         if (secondary) {
             // Inner content gap only — chrome is one continuous island.
-            targetWidth = primary.width + secondary->width + 10.0f * g_settings.sizeScale;
+            targetWidth = primary.width + secondary->width + 10.0f * frameSettings.sizeScale;
             targetHeight = std::max(primary.height, secondary->height);
+        }
+        if (tertiary) {
+            targetWidth += tertiary->width + 10.0f * frameSettings.sizeScale;
+            targetHeight = std::max(targetHeight, tertiary->height);
         }
 
         widthSpring.target = targetWidth;
@@ -23431,7 +24483,8 @@ DWORD WINAPI RenderThreadProc(void*) {
             primary.kind == IslandKind::DoNotDisturb || primary.kind == IslandKind::Lookup;
         static bool s_moduleMorphActive = false;
         static bool s_combinedWithMedia = false;
-        if (secondary && secondary->kind == IslandKind::Media) {
+        if ((secondary && secondary->kind == IslandKind::Media) ||
+            (tertiary && tertiary->kind == IslandKind::Media)) {
             s_combinedWithMedia = true;
         }
         if (statusModule) {
@@ -23446,7 +24499,7 @@ DWORD WINAPI RenderThreadProc(void*) {
         }
         const bool moduleMorph = statusModule || s_moduleMorphActive;
         const bool combineClosing =
-            s_combinedWithMedia && !secondary && primary.kind == IslandKind::Media &&
+            s_combinedWithMedia && !secondary && !tertiary && primary.kind == IslandKind::Media &&
             s_moduleMorphActive;
 
         float widthStiffness = 280.0f * styleStiffnessMult;
@@ -23597,9 +24650,13 @@ DWORD WINAPI RenderThreadProc(void*) {
         // is the secondary one -- and looking only at primary left its waveform
         // frozen.
         const bool mediaShown = primary.kind == IslandKind::Media ||
-                                (secondary && secondary->kind == IslandKind::Media);
+                                (secondary && secondary->kind == IslandKind::Media) ||
+                                (tertiary && tertiary->kind == IslandKind::Media);
         const bool mediaAnimating =
             mediaShown && (snapshot.media.playing || isHoverExpanded || pinned);
+        const bool callShown = primary.kind == IslandKind::Call ||
+                               (secondary && secondary->kind == IslandKind::Call) ||
+                               (tertiary && tertiary->kind == IslandKind::Call);
 
         // Transient alert pills. All expire within a few seconds, so treating them as
         // continuous cannot run away.
@@ -23614,13 +24671,15 @@ DWORD WINAPI RenderThreadProc(void*) {
             return kind == IslandKind::Device || kind == IslandKind::Bluetooth ||
                    kind == IslandKind::DoNotDisturb;
         };
-        const bool countdownBarsOn = g_settings.mediaPillProgress;
+        const bool countdownBarsOn = frameSettings.mediaPillProgress;
 
         const bool continuousAnimation =
-            mediaAnimating || isTransientPill(primary.kind) ||
+            mediaAnimating || callShown || isTransientPill(primary.kind) ||
             (secondary && isTransientPill(secondary->kind)) ||
+            (tertiary && isTransientPill(tertiary->kind)) ||
             (countdownBarsOn && (hasCountdownBar(primary.kind) ||
-                                 (secondary && hasCountdownBar(secondary->kind))));
+                                 (secondary && hasCountdownBar(secondary->kind)) ||
+                                 (tertiary && hasCountdownBar(tertiary->kind))));
         if (continuousAnimation) {
             needsRender = true;
         }
@@ -23755,7 +24814,7 @@ DWORD WINAPI RenderThreadProc(void*) {
                 const bool isExpanded = isHoverExpanded || pinned || isTransientAlert || (widthSpring.value > 260.0f);
                 renderSettings.pillOpacity = isExpanded ? 0.98f : 0.88f;
             }
-            renderer.Render(snapshot, renderSettings, primary, secondary,
+            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,
                             widthSpring.value, heightSpring.value, nudgeSpring.value,
                             hover, pinned, now, combineClosing);
         }
@@ -23922,6 +24981,7 @@ bool StartThreads() {
 
 void StopThreads() {
     UnsubscribeDndNotification();
+    StopDiscordRpcThread();
     if (g_keyboardThreadId != 0) {
         PostThreadMessageW(g_keyboardThreadId, WM_QUIT, 0, 0);
     }
@@ -23972,6 +25032,7 @@ void StopThreads() {
 
 }  // namespace
 
+// === Tool-mod shell (WhTool_* / Wh_Mod*) ===
 BOOL WhTool_ModInit() {
     LoadSettings();
 

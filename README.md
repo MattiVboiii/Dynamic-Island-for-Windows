@@ -16,8 +16,8 @@ A smooth, interactive overlay for your desktop, inspired by Apple's Dynamic Isla
 
 ### Dashboards
 
-| Media Player | Calendar | Weather | Game Overlay | Idle View |
-| :---: | :---: | :---: | :---: | :---: |
+|                                                                          Media Player                                                                           |                                                                            Calendar                                                                             |                                                                              Weather                                                                              |                                                                           Game Overlay                                                                            |                                                                           Idle View                                                                            |
+| :-------------------------------------------------------------------------------------------------------------------------------------------------------------: | :-------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------: | :---------------------------------------------------------------------------------------------------------------------------------------------------------------: | :------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/media-v2.png" width="200" /> | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/calendar.png" width="200" /> | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/weather-v2.png" width="200" /> | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/gamebar-v2.png" width="200" /> | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/idle-v2.png" width="200" /> |
 
 ### Hardware Monitor
@@ -34,8 +34,8 @@ A smooth, interactive overlay for your desktop, inspired by Apple's Dynamic Isla
 
 ### Privacy Indicators
 
-| Camera Detected | Microphone Detected |
-| :---: | :---: |
+|                                                                              Camera Detected                                                                              |                                                                          Microphone Detected                                                                           |
+| :-----------------------------------------------------------------------------------------------------------------------------------------------------------------------: | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------: |
 | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/camera-detected-v2.png" width="200" /> | <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/mic-detected-v2.png" width="200" /> |
 
 ---
@@ -89,20 +89,19 @@ Tweak the mod easily from the **Windhawk settings panel**:
 - **Media Exclusions:** Name apps or sites that should never make the island expand on a track change, so short-form video feeds stop popping it open.
 - **Game Overlay:** Choose which of FPS, CPU, GPU, RAM and disk to show, and switch to a compact strip that fits the taskbar.
 - **Refresh Rate & Animations:** Match your display's refresh rate (up to 360Hz/500Hz+), select physics styles (Smooth, Default, Bouncy, Snappy), and fine-tune animation speeds.
-- **Audio Spectrum & Progress Bar:** Choose the audio visualizer next to the album art (Classic Bars, Pulse Orb, Plasma Thread or Peak Matrix) and the look of the song progress bar (Slim, Wavy, Squiggle or Bar).
+- **Audio Spectrum & Progress Bar:** Choose the audio visualizer next to the album art (Classic Bars with bass–mids–highs, Pulse Orb, Plasma Thread or Peak Matrix) and the look of the song progress bar (Slim, Wavy, Squiggle or Bar).
 - **Track-Change Animations:** Optionally animate the song title, artist, album, cover flip, playback controls and the collapsed pill's cover spin. Off by default, in **Animations & Performance**.
 - **Media Pill Clock:** Optionally show the current time on the left of the collapsed media pill, using the same 12/24-hour and seconds settings as the idle clock.
+- **Media Pill Title & Artist:** Optionally widen the collapsed media pill to show title and artist between the cover and the EQ (collapsed lyrics, if enabled, take that slot instead).
+- **Bottom Progress Strip:** One toggle for the thin flush strip — song position on the collapsed media pill, and countdown on temporary status cards. Off by default.
+- **Clear Media When Paused:** Next to auto-hide under **Behavior & Visibility**. Drops a paused/stopped session back to the idle clock after a timeout; the island stays visible (auto-hide parks the whole UI).
 - **Volume & Brightness Flyouts:** Slider banners appear on the island when the system volume or your laptop screen brightness changes. Both can be switched off in **Modules & Features**.
 - **Modules & Visibility:** Configure media, dashboards, privacy dots, system flyouts, auto-hide idle behavior, and shortcuts.
 - **Process Inclusion (for Notifications):** To use the notification module, you must add `explorer.exe` to the process inclusion list under the **Advanced** tab of the mod settings in Windhawk, then restart the mod.
 - **Notification Permission (for Notifications):** Windows must also allow apps to read your notifications. Turn on **Settings → Privacy & security → Notifications → "Let apps access your notifications"**. If this is off, Windows denies the listener and no notification will reach the island no matter how the mod is configured. When notifications still don't show, check the mod's log in Windhawk for a "permission not granted" line.
 
-> [!IMPORTANT]
-> **The right-click menu is per-session, not persistent configuration.**
->
-> **Theme**, **shape style** (Pill / Notch / Windows 11) and **pin open** are re-applied from your Windhawk settings every time the mod restarts, so a reboot, a mod update, or disabling and re-enabling the mod will discard whatever you picked from the menu. Set anything you want to keep in the **Mod Settings** tab instead.
->
-> Transparency and Expand-on-hover chosen from the menu do survive a restart, but the settings tab remains the reliable place to configure them.
+> [!NOTE]
+> **Right-click overrides persist** (theme, shape style, pin open, transparency, expand-on-hover) in the mod's local storage across restarts. Changing the matching value in **Mod Settings** clears that override and takes over again.
 
 ---
 
@@ -128,7 +127,7 @@ Found a bug? Have a cool feature idea? We want to hear from you! Please drop an 
 We love community contributions! If you want to add a feature or fix a bug, please follow these strict rules to ensure high-quality updates:
 
 1. **Fork & Branch:** Fork the repository and create your feature branch.
-2. **Respect Existing Features:** Do not outright remove or break other people's features unless you have a critical, fully explained reason in your PR. You are highly encouraged to *refine* and *improve* existing features, but destructive changes without discussion will not be accepted.
+2. **Respect Existing Features:** Do not outright remove or break other people's features unless you have a critical, fully explained reason in your PR. You are highly encouraged to _refine_ and _improve_ existing features, but destructive changes without discussion will not be accepted.
 3. **Credit Yourself:** After completing your feature, add your name and a short summary of your contribution to the **Credits** section in both `README.md` and the top comment block of `dynamic-island-for-windows.wh.cpp`!
 4. **Submit a PR:** Push to your fork and submit a Pull Request.
 
