@@ -606,6 +606,7 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <devpropdef.h>
 #include <dbt.h>
 #include <d2d1.h>
+#include <d2derr.h>
 #include <dwrite.h>
 #include <wincodec.h>
 #include <shcore.h>
@@ -689,6 +690,12 @@ constexpr int ID_LOOKUP_HOTKEY = 2;
 constexpr float kRenderPadX = 28.0f;
 constexpr float kRenderPadY = 22.0f;
 constexpr UINT kClipboardImageThumbMaxDim = 160;  // longer-side cap for the clipboard image thumbnail
+
+namespace PillCornerRadius {
+constexpr float kWindows11 = 8.0f;
+constexpr float kNotch = 16.0f;
+constexpr float kPillCap = 44.0f;
+}
 
 // Layout for the expanded media dashboard. DrawMedia paints every element at an
 // offset from the content rect it is handed, and OverlayWndProc hit-tests in
@@ -1305,6 +1312,17 @@ struct Settings {
     bool gameOverlayShowDisk = true;
     bool gameOverlayCompact = false;
 };
+
+float ComputeIslandCornerRadius(const Settings& settings, float pillHeight) {
+    float radius = settings.w11Style ? PillCornerRadius::kWindows11 * settings.sizeScale
+                                     : pillHeight * 0.5f;
+    if (settings.notchStyle) {
+        radius = PillCornerRadius::kNotch * settings.sizeScale;
+    } else if (!settings.w11Style) {
+        radius = std::min(radius, PillCornerRadius::kPillCap * settings.sizeScale);
+    }
+    return radius;
+}
 
 struct BitmapPixels {
     std::vector<uint8_t> bgra;
@@ -13682,14 +13700,7 @@ class Renderer {
             return false;
         }
 
-        D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
-            D2D1_RENDER_TARGET_TYPE_DEFAULT,
-            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-            0.0f, 0.0f,
-            D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
-
-        hr = d2dFactory_->CreateDCRenderTarget(&props, &target_);
-        if (FAILED(hr)) {
+        if (!EnsureD2RenderTarget()) {
             return false;
         }
 
@@ -13705,6 +13716,10 @@ class Renderer {
                 const std::optional<Activity>& tertiary, float width, float height,
                 float nudge, bool hover, bool pinned, double now,
                 bool combineClosing = false) {
+        if (!EnsureD2RenderTarget()) {
+            return false;
+        }
+
         EnsureTextFormats(settings.sizeScale, settings.fontFamily, settings.textScale);
 
         width = std::max(width, 0.0f);
@@ -13771,6 +13786,11 @@ class Renderer {
         // coordinates, and every draw routine composes with the current transform.
         RECT rc = dirty;
         HRESULT hr = target_->BindDC(memDc_, &rc);
+        if (hr == D2DERR_RECREATE_TARGET) {
+            DropTargetBoundResources();
+            EnsureD2RenderTarget();
+            return false;
+        }
         if (FAILED(hr)) {
             return false;
         }
@@ -13850,18 +13870,10 @@ class Renderer {
                 const D2D1_RECT_F islandRect =
                     D2D1::RectF(left, islandTop, left + width, islandTop + height);
 
-                float radius = settings.w11Style ? 8.0f * settings.sizeScale
-                                                 : (islandRect.bottom - islandRect.top) * 0.5f;
-                if (settings.notchStyle) {
-                    radius = 16.0f * settings.sizeScale;
-                } else if (!settings.w11Style) {
-                    radius = std::min(radius, 44.0f * settings.sizeScale);
-                }
-                if (pillCount_ < DwmBackdrop::kMaxPills) {
-                    pillRects_[pillCount_] = islandRect;
-                    pillRadii_[pillCount_] = radius;
-                    ++pillCount_;
-                }                DrawSoftShadow(islandRect, radius, settings);
+                const float radius =
+                    ComputeIslandCornerRadius(settings, islandRect.bottom - islandRect.top);
+                RegisterBackdropPill(islandRect, radius);
+                DrawSoftShadow(islandRect, radius, settings);
                 IslandKind chromeKind = primary.kind;
                 for (int i = 0; i < n; ++i) {
                     if (bays[i]->kind == IslandKind::Media) {
@@ -13920,18 +13932,10 @@ class Renderer {
                     width > primary.width + 2.0f) {
                     const D2D1_RECT_F islandRect =
                         D2D1::RectF(left, top, left + width, top + height);
-                    float radius = settings.w11Style ? 8.0f * settings.sizeScale
-                                                     : (islandRect.bottom - islandRect.top) * 0.5f;
-                    if (settings.notchStyle) {
-                        radius = 16.0f * settings.sizeScale;
-                    } else if (!settings.w11Style) {
-                        radius = std::min(radius, 44.0f * settings.sizeScale);
-                    }
-                    if (pillCount_ < DwmBackdrop::kMaxPills) {
-                        pillRects_[pillCount_] = islandRect;
-                        pillRadii_[pillCount_] = radius;
-                        ++pillCount_;
-                    }                    DrawSoftShadow(islandRect, radius, settings);
+                    const float radius =
+                        ComputeIslandCornerRadius(settings, islandRect.bottom - islandRect.top);
+                    RegisterBackdropPill(islandRect, radius);
+                    DrawSoftShadow(islandRect, radius, settings);
                     DrawPillSurface(islandRect, radius, IslandKind::Media, settings);
 
                     const float mediaW = primary.width;
@@ -13948,6 +13952,11 @@ class Renderer {
 
         target_->PopAxisAlignedClip();
         hr = target_->EndDraw();
+        if (hr == D2DERR_RECREATE_TARGET) {
+            DropTargetBoundResources();
+            EnsureD2RenderTarget();
+            return false;
+        }
         if (FAILED(hr)) {
             stageValid_ = false;
             return false;
@@ -14022,9 +14031,6 @@ class Renderer {
         camDotBrush_.Reset();
         camGlowBrush_.Reset();
         weatherDescFormat_.Reset();
-        micGlowBrush_.Reset();
-        camDotBrush_.Reset();
-        camGlowBrush_.Reset();
         target_.Reset();
         textFormat_.Reset();
         smallTextFormat_.Reset();
@@ -14752,6 +14758,46 @@ class Renderer {
         for (ShapeEntry& e : shapeCache_) e = ShapeEntry{};
     }
 
+    void RegisterBackdropPill(D2D1_RECT_F rect, float radius) {
+        if (pillCount_ >= DwmBackdrop::kMaxPills) {
+            return;
+        }
+        pillRects_[pillCount_] = rect;
+        pillRadii_[pillCount_] = radius;
+        ++pillCount_;
+    }
+
+    bool EnsureD2RenderTarget() {
+        if (target_) {
+            return true;
+        }
+        if (!d2dFactory_) {
+            return false;
+        }
+        const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+            D2D1_RENDER_TARGET_TYPE_DEFAULT,
+            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+            0.0f, 0.0f, D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
+        return SUCCEEDED(d2dFactory_->CreateDCRenderTarget(&props, &target_));
+    }
+
+    void DropTargetBoundResources() {
+        ReleaseCachedResources();
+        accentBrush_.Reset();
+        redBrush_.Reset();
+        textBrush_.Reset();
+        mutedBrush_.Reset();
+        tintBrush_.Reset();
+        shadowBrush_.Reset();
+        micDotBrush_.Reset();
+        micGlowBrush_.Reset();
+        camDotBrush_.Reset();
+        camGlowBrush_.Reset();
+        scratchColorBrush_.Reset();
+        target_.Reset();
+        stageValid_ = false;
+    }
+
     void BuildMaterialTokens(const Settings& settings) {
         MaterialTokens t;
         t.opacity = settingsOpacity_;
@@ -14796,18 +14842,11 @@ class Renderer {
         const float h = (rect.bottom - rect.top) * scale;
         rect = D2D1::RectF(cx - w * 0.5f, cy - h * 0.5f, cx + w * 0.5f, cy + h * 0.5f);
 
-        float radius = settings.w11Style ? 8.0f * settings.sizeScale : (rect.bottom - rect.top) * 0.5f;
-        if (settings.notchStyle) {
-            radius = 16.0f * settings.sizeScale;
-        } else if (!settings.w11Style) {
-            radius = std::min(radius, 44.0f * settings.sizeScale);
-        }
+        const float radius = ComputeIslandCornerRadius(settings, rect.bottom - rect.top);
         // Only the chrome silhouette owns a backdrop slot. Content-only DrawPill
         // calls (combined bays) must not register sub-rects or the blur fragments.
-        if (drawChrome && pillCount_ < DwmBackdrop::kMaxPills) {
-            pillRects_[pillCount_] = rect;
-            pillRadii_[pillCount_] = radius;
-            ++pillCount_;
+        if (drawChrome) {
+            RegisterBackdropPill(rect, radius);
         }
 
         if (drawChrome) {
@@ -24872,8 +24911,17 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
+struct CoInitializeScope {
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    ~CoInitializeScope() {
+        if (SUCCEEDED(hr)) {
+            CoUninitialize();
+        }
+    }
+};
+
 DWORD WINAPI RenderThreadProc(void*) {
-    HRESULT hrCo = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    const CoInitializeScope comApartment;
 
     WNDCLASSEXW wc = {};
     wc.cbSize = sizeof(wc);
@@ -24890,9 +24938,6 @@ DWORD WINAPI RenderThreadProc(void*) {
 
     if (!hwnd) {
         Wh_Log(L"Failed to create Dynamic Island overlay window.");
-        if (SUCCEEDED(hrCo)) {
-            CoUninitialize();
-        }
         return 0;
     }
 
@@ -24934,9 +24979,6 @@ DWORD WINAPI RenderThreadProc(void*) {
     if (!renderer.Initialize(hwnd)) {
         DestroyWindow(hwnd);
         g_hwnd = nullptr;
-        if (SUCCEEDED(hrCo)) {
-            CoUninitialize();
-        }
         return 0;
     }
 
@@ -25878,7 +25920,9 @@ DWORD WINAPI RenderThreadProc(void*) {
                 !DwmBackdrop::Available()) {
                 renderSettings.backdropMaterial = BackdropMaterial::None;
             }
-            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,                            widthSpring.value, heightSpring.value, nudgeSpring.value,                            hover, pinned, now, combineClosing);
+            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,
+                            widthSpring.value, heightSpring.value, nudgeSpring.value,
+                            hover, pinned, now, combineClosing);
         }
 
         // --- Zero-CPU parking for auto-hidden states (idle timeout / fullscreen) ---
@@ -26004,10 +26048,6 @@ DWORD WINAPI RenderThreadProc(void*) {
     DestroyWindow(hwnd);
     g_hwnd = nullptr;
     UnregisterClassW(kWindowClass, wc.hInstance);
-
-    if (SUCCEEDED(hrCo)) {
-        CoUninitialize();
-    }
 
     return 0;
 }
