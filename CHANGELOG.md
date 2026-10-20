@@ -4,6 +4,48 @@ All notable changes, enhancements, and bug fixes for **Dynamic Island for Window
 
 ---
 
+## [1.4.0] — 2026-10-20
+
+### ✨ New Features
+
+#### 🪟 Real Blur & Acrylic Backdrop (#112)
+Genuine Windows DWM blur and frosted acrylic backdrop support for the island:
+- Native Desktop Window Manager (DWM) composition for true system blur and acrylic materials
+- Dynamic topmost synchronization and state management (park/unpark, hide/show)
+- DWM backdrop preserved in screenshots and window captures
+
+#### 🎵 Live Lyrics (#103)
+Real-time synchronized lyrics display with multiple viewing modes:
+- **Inline on collapsed island** — current line scrolls directly on the media pill
+- **Dedicated lyrics tab** — full scrolling lyrics view in the expanded dashboard
+- **Quick Lookup** — right-click any word in the lyrics or press `Ctrl+Alt+Space` to search it instantly
+- Smooth animations and automatic syncing with playback position
+
+#### 🔄 Cross-Source Media Switching (#103)
+Seamlessly switch between different media sources (Spotify, browsers, system audio) without the island losing context. Media state persists across source changes.
+
+#### 💾 Persistent File Tray Storage (#103)
+File Tray items now persist to disk storage. Dragged files survive mod restarts and system reboots, making the tray a true parking space rather than a session-only shelf.
+
+#### 🔊 Event-Driven Volume Flyout (#101)
+Volume flyout completely rebuilt to be event-driven instead of polled:
+- Registers `IAudioEndpointVolumeCallback` for instant updates on every volume step
+- Smooth spring animation on the volume bar (overdamped, cannot overshoot)
+- `IMMNotificationClient` rebinds when default output device changes (switching from speakers to headphones now works correctly)
+- No more 1-second polling lag or repeated nudges while adjusting
+- Wakes parked islands on volume changes
+
+#### 📅 Calendar Locale Support (#101)
+Calendar now properly follows Windows display language and regional settings. Month names no longer incorrectly uppercased (fixes Turkish "i" → "İ" and preserves CJK characters).
+
+### 🐛 Fixes
+
+- Volume changes under 2% are no longer ignored
+- Calendar locale rendering fixed for non-English languages
+- Volume bar shows exact percentage while animating smoothly to target
+
+---
+
 ## [1.3.0] — 2026-09-24
 
 ### ✅ Resolved Issues

@@ -29,6 +29,8 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 | Module | Description | Preview |
 | :--- | :--- | :--- |
 | **Media Player** | Shows live album art, track details, audio waveforms, and full playback controls. | ![Media](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/media-v2.png) |
+| **Live Lyrics** | Real-time synchronized lyrics with inline collapsed view and full lyrics tab. | ![Live Lyrics](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/main/previews/lyrics.png) |
+| **Blur & Acrylic** | Genuine Windows DWM blur and acrylic backdrop effects for modern depth. | ![Blur & Acrylic](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/main/previews/blur-acrylic.png) |
 | **Calendar** | A monthly grid that always fits its rows, with today marked in the accent colour. | ![Calendar](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/calendar.png) |
 | **Weather** | Real-time weather stats powered by wttr.in, including wind speed, humidity, and "feels like" temperature. | ![Weather](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/weather-v2.png) |
 | **Hardware Monitor** | CPU, RAM, GPU, disk and live network throughput, with load bars that turn amber past 75% and red past 90%. | ![Hardware Monitor](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/hardware-monitor.png) |
@@ -46,7 +48,7 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 - **360Hz+ Dynamic Fluid Animations:** Ultra-smooth resizing and splitting with native support for high refresh rate monitors (up to 360Hz/500Hz+) and zero idle CPU drain.
 - **Eight Curated Themes:** Obsidian, Graphite, Slate, Nord, Evergreen, Espresso, Plum and a light Porcelain, all switchable from the right-click menu's Theme submenu — or dial in your exact hex colors.
 - **Clean Flat Material:** Surfaces are built from soft downward depth shading, a drop shadow, and an accent wash tinted live from your album art. No rim lighting, no glass highlights, no outlined cards — nothing traces a bright line along an edge.
-- **Real Blur & Acrylic Backdrop:** Optionally paint genuine Windows blur or frosted acrylic behind the island so your desktop shows through it, exactly like the system's own surfaces.
+- **Real Blur & Acrylic Backdrop:** Optionally paint genuine Windows blur or frosted acrylic behind the island so your desktop shows through it, exactly like the system's own surfaces. Requires Windows' **Transparency effects** to be turned on (see Usage & Settings below).
 - **Translucent Backgrounds:** Hex colors accept an alpha channel (`#RRGGBBAA`), so you can make the island see-through while keeping text and icons perfectly crisp.
 - **Your Language:** The island's own labels follow your Windows display language across 12 languages, or you can pick one explicitly.
 - **File Tray:** Drag any file onto the island to park it on a shelf, then click to open it. You can now drag files back out into any folder or app, and remove them one by one. The island itself only references files, it never copies or moves them.
@@ -69,6 +71,7 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 - **Right-Click Menu:** Right-click the island to access Theme presets, Transparency settings, collapsed-island lyrics, and to pin the island open.
 - **Right-click overrides:** Theme, shape style (Pill / Notch / Windows 11), pin open, transparency and expand-on-hover from the right-click menu are stored in the mod's local storage and survive restarts. Changing the matching value in the **Mod Settings** tab clears that override and takes over again.
 - **Windhawk Settings:** Visit the Mod Settings tab to change the island's Position, Size Scale, Refresh Rate (Target FPS), Animation Style (Smooth/Default/Bouncy/Snappy), Animation Speed, and toggle specific modules. You can also perfectly align the island using the `Offset X` and `Offset Y` settings, and select exactly which monitor the island should appear on (including a "Follow Mouse" mode!).
+- **Blur & Acrylic need Transparency effects:** Windows does not enable this by default on every PC, and the Blur and Acrylic backdrop will not show without it (you will only see a flat tint instead). Turn it on in **Settings > Personalization > Colors > Transparency effects** (on Windows 11 you can also find it under **Settings > Accessibility > Visual effects > Transparency effects**). Also make sure **Battery saver** is off, because it disables these effects too. Then pick a material under **Mod Settings > Themes > Backdrop material**; the change applies live, no restart needed.
 - **Notifications:** Windows must allow apps to read notifications: turn on **Settings > Privacy & security > Notifications > "Let apps access your notifications"**. Without that permission Windows denies the listener and the module stays silent. Nothing needs to be added to the process inclusion list; the island runs in its own process and reads notifications from there.
 - **Quick Hide/Show:** Right-click the island and choose "Hide Island" to collapse it completely — CPU usage drops to ~0% while hidden since the mod fully parks its render thread. Bring it back instantly with the configurable hotkey (default **Ctrl+Alt+D**, changeable in the **Shortcuts** settings tab). Because a hidden island can't be right-clicked, the hotkey is the *only* way back once hidden — if you turn the hotkey off while hidden, re-enable it (or disable the mod) from Windhawk's settings.
 
@@ -285,8 +288,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: 0 to 100. Controls how dark the background tint behind the island is.
   - BackdropMaterial: none
     $name: Backdrop material (real Windows blur)
-    $description: Paints genuine Windows blur or acrylic behind the island so your desktop and windows show through it, using the same effect the system uses for its own surfaces. Acrylic adds Windows' frosted grain and a tint of your background colour (see Acrylic tint strength). Requires Windows 10 1803 or newer; when Windows' transparency effects are off it falls back to a plain tint. When this is on, use Backdrop fill opacity below to control how much of the blur comes through.
-    $options:
+    $description: Paints genuine Windows blur or acrylic behind the island so your desktop and windows show through it, using the same effect the system uses for its own surfaces. Acrylic adds Windows' frosted grain and a tint of your background colour (see Acrylic tint strength). Requires Windows 10 1803 or newer, and Windows' Transparency effects must be turned ON (Settings > Personalization > Colors > Transparency effects, or on Windows 11 also Settings > Accessibility > Visual effects). If it is off, or Battery saver is on, you will only see a flat tint with no blur. When this is on, use Backdrop fill opacity below to control how much of the blur comes through.    $options:
       - none: Off (solid background)
       - blur: Blur
       - acrylic: Acrylic (frosted)
@@ -446,7 +448,7 @@ We love community contributions! To ensure high-quality updates, please follow t
   - MediaTabLyrics: false
     $name: Lyrics in the media tab
     $description: Shows synced lyrics in a side panel next to the album art and playback controls when the island is expanded on the Media tab. The island is only wider while this is on. Can also be toggled from the right-click menu.
-  - Lyrics: true
+  - Lyrics: false
     $name: Lyrics module
     $description: Shows synced lyrics for the current track (fetched from LRCLIB, a free open-source lyrics database) while the island is expanded. Scroll to the Lyrics tab to view them.
   - LyricsVisualizer: true
@@ -518,7 +520,7 @@ We love community contributions! To ensure high-quality updates, please follow t
       - auto: Auto (Follow Windows)
       - monday: Monday
       - sunday: Sunday
-  - QuickLookup: true
+  - QuickLookup: false
     $name: Quick Lookup (hotkey)
     $description: "Press the Quick Lookup hotkey (Shortcuts tab) to open a search box on the island. Type a word or short phrase and press Enter, or pick your clipboard text or a recent lookup. Nothing is sent anywhere until you submit a search; searches go to en.wiktionary.org and en.wikipedia.org (and api.dictionaryapi.dev as a backup dictionary). Recent lookups are kept in memory only and cleared when the mod restarts."
   - FileTrayModule: false
@@ -529,7 +531,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: 1 to 25. How many files the shelf keeps before the oldest one drops off.
   - FileTrayPersist: true
     $name: File Tray remembers items (disk)
-    $description: Keeps the tray's contents across restarts, in %LOCALAPPDATA%\DynamicIslandForWindows\filetray. Only file paths and pasted text snippets are stored, never copies of your files. Turn off to stop all disk reads and writes and delete the saved list.
+    $description: Keeps the tray's contents across restarts, in the mod's storage folder. Only file paths and pasted text snippets are stored, never copies of your files. Turn off to stop all disk reads and writes and delete the saved list.
   - MediaExpandBlocklist: ""
     $name: Ignore media from these apps
     $description: 'Comma-separated app or site names that should not put the island into media mode (and never auto-expand on track change). Matched loosely against the media source, AUMID and title — .exe suffixes are optional. Examples: firefox, chrome.exe, youtube, tiktok.'
@@ -1208,7 +1210,7 @@ struct Settings {
     UINT hideShowVk = 'D';
 
     // Quick Lookup: hotkey-triggered dictionary / Wikipedia card.
-    bool quickLookup = true;
+    bool quickLookup = false;
     UINT lookupModifiers = MOD_CONTROL | MOD_ALT | MOD_NOREPEAT;
     UINT lookupVk = VK_SPACE;
     bool bluetoothIndicator = true;
@@ -1222,7 +1224,7 @@ struct Settings {
     bool weather = true;
     std::wstring weatherCity;
     bool weatherFahrenheit = false;
-    bool lyrics = true;
+    bool lyrics = false;
     bool lyricsVisualizer = true;
     bool karaokeLyrics = true;
     bool karaokeLetterGlow = true;
@@ -1794,6 +1796,7 @@ bool g_brightnessInitialized = false;
 int g_lastBrightness = -1;
 BYTE g_brightnessPowerSource = 255;  // ACLineStatus of the previous sample
 std::atomic<double> g_lastNudgeTime = 0.0;
+std::atomic<double> g_lastLyricsViewTime = 0.0;
 
 std::mutex g_bluetoothBatteryCacheMutex;
 std::unordered_map<std::wstring, int> g_bluetoothBatteryCache;  // Bluetooth device Id -> last known battery percent (-1 = never learned)
@@ -3698,7 +3701,6 @@ struct CompositionAttribData {
 
 using SetWindowCompositionAttribute_t = BOOL(WINAPI*)(HWND, CompositionAttribData*);
 using SetWindowDisplayAffinity_t = BOOL(WINAPI*)(HWND, DWORD);
-
 constexpr int kAccentDisabled = 0;
 constexpr int kAccentEnableBlurBehind = 3;
 constexpr int kAccentEnableAcrylicBlurBehind = 4;
@@ -3709,7 +3711,6 @@ constexpr wchar_t kClassName[] = L"DynamicIslandBackdrop";
 #ifndef WDA_EXCLUDEFROMCAPTURE
 constexpr DWORD WDA_EXCLUDEFROMCAPTURE = 0x00000011;
 #endif
-
 struct Slot {
     HWND hwnd = nullptr;
     int x = 0, y = 0, w = 0, h = 0;  // last placed rect (screen px)
@@ -3728,7 +3729,6 @@ bool g_resolved = false;
 bool g_supported = false;  // API present and Windows 10 1803 or newer
 bool g_classRegistered = false;
 bool g_excludeFromCapture = false;  // Win10 2004+
-
 // Last Sync signature so idle presents that redraw content skip SetWindowPos work.
 struct SyncFingerprint {
     HWND island = nullptr;
@@ -3858,8 +3858,7 @@ HWND CreateBackdropWindow(HWND owner) {
         // Keeps the backdrop out of screenshots / Game Bar so capture APIs see
         // the desktop behind it instead of a black or smeared rectangle.
         g_setAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
-    }
-    return hwnd;
+    }    return hwnd;
 }
 
 void HideSlot(Slot& s) {
@@ -4294,15 +4293,6 @@ StageLayout ComputeStageLayout(const Settings& settings, float pillW, float pill
 // never moves or resizes in a separate step from its content.
 void ApplyOverlayZOrder(HWND hwnd, int width, int height) {
     HWND zOrder = g_settings.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
-
-    if (g_settings.alwaysOnTop) {
-        SetWindowLongPtr(hwnd, GWLP_HWNDPARENT, 0);
-    } else {
-        HWND hProgman = FindWindowW(L"Progman", nullptr);
-        if (hProgman) {
-            SetWindowLongPtr(hwnd, GWLP_HWNDPARENT, reinterpret_cast<LONG_PTR>(hProgman));
-        }
-    }
 
     // Yield to the screen-clip overlay.
     const bool yieldToClipUi = Backdrop::ClipUiActiveCached();
@@ -7114,7 +7104,6 @@ DWORD WINAPI WeatherThreadProc(void*) {
             weatherHttp = HttpGetEx(L"wttr.in", url.c_str(), false, kWeatherUserAgent);
         }
         const std::string& wRes = weatherHttp.body;
-
         bool weatherCommitted = false;
 
         if (weatherHttp.ok && weatherHttp.status == 200 && !wRes.empty()) {
@@ -7278,7 +7267,7 @@ DWORD WINAPI WeatherThreadProc(void*) {
 // ── Lyrics (LRCLIB, https://lrclib.net) ──────────────────────────────────────
 // OPTIONAL: User-Agent sent to LRCLIB. 
 constexpr wchar_t kLyricsUserAgent[] =
-    L"DynamicIslandForWindows/1.3.1 (https://github.com/devcode90/Dynamic-Island-for-Windows)";
+    L"DynamicIslandForWindows/1.4.0 (https://github.com/devcode90/Dynamic-Island-for-Windows)";
 
 bool IsUrlSafeChar(unsigned char c) {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
@@ -8517,7 +8506,9 @@ DWORD WINAPI LyricsThreadProc(void*) {
             diskCapBytes = static_cast<uint64_t>(std::max(0, g_settings.lyricsCacheMaxMB)) * 1024ull * 1024ull;
         }
         LyricsCache::IterationGuard cacheGuard(diskCacheOn, diskCapBytes);
-        if (!lyricsEnabled) {
+        const bool lyricsViewVisible =
+            (NowSeconds() - g_lastLyricsViewTime.load(std::memory_order_relaxed)) < 3.0;
+        if (!lyricsEnabled || !lyricsViewVisible) {
             WaitForSingleObject(g_stopEvent, 1000);
             continue;
         }
@@ -10824,7 +10815,7 @@ int LookupRowAtContentPoint(const MediaContentPoint& pt, int rowCount, bool head
 // Wikimedia asks API clients to send a descriptive User-Agent with contact info.
 // Replace the placeholder with your fork's page, like kLyricsUserAgent.
 constexpr wchar_t kLookupUserAgent[] =
-    L"DynamicIslandForWindows/1.3 (https://github.com/devcode90/Dynamic-Island-for-Windows) QuickLookup";
+    L"DynamicIslandForWindows/1.4.0 (https://github.com/devcode90/Dynamic-Island-for-Windows) QuickLookup";
 
 // Bumped for every new request AND when the card is dismissed. A worker only
 // publishes if its id is still current, so a slow reply can never resurrect a card
@@ -11556,16 +11547,11 @@ std::vector<LookupRow> CurrentLookupRows(LookupStatus* status) {
 }
 
 void ForceForeground(HWND hwnd) {
-    HWND fg = GetForegroundWindow();
-    const DWORD fgThread = fg ? GetWindowThreadProcessId(fg, nullptr) : 0;
-    const DWORD me = GetCurrentThreadId();
-    const bool attached = fgThread && fgThread != me && AttachThreadInput(me, fgThread, TRUE);
+    INPUT input{};
+    SendInput(1, &input, sizeof(INPUT));
     SetForegroundWindow(hwnd);
     BringWindowToTop(hwnd);
     SetFocus(hwnd);
-    if (attached) {
-        AttachThreadInput(me, fgThread, FALSE);
-    }
 }
 
 // The island is WS_EX_NOACTIVATE so it never steals focus. While the search box is
@@ -14115,8 +14101,7 @@ class Renderer {
         }
         // Only the chrome silhouette owns a backdrop slot. Content-only DrawPill
         // calls (combined bays) must not register sub-rects or the blur fragments.
-        if (drawChrome && pillCount_ < DwmBackdrop::kMaxPills) {
-            pillRects_[pillCount_] = rect;
+        if (drawChrome && pillCount_ < DwmBackdrop::kMaxPills) {            pillRects_[pillCount_] = rect;
             pillRadii_[pillCount_] = radius;
             ++pillCount_;
         }
@@ -14216,8 +14201,7 @@ class Renderer {
     // fake it convincingly and cheaply.
     void DrawSoftShadow(D2D1_RECT_F rect, float radius, const Settings& settings) {
         // The island sits on top of the backdrop, so a shadow here would darken the blur.
-        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {
-            return;
+        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {            return;
         }
 
         const float spread = Clamp(14.0f * settings.sizeScale, 6.0f, kRenderPadY - 4.0f);
@@ -15881,6 +15865,7 @@ class Renderer {
         {
             const bool lyricsFresh = lyricsLastDrawn_ >= 0.0 && (now - lyricsLastDrawn_) < 0.25;
             lyricsLastDrawn_ = now;
+            g_lastLyricsViewTime.store(now, std::memory_order_relaxed);
             if (!lyricsFresh) {
                 lyricsScrollAnimStartTime_ = -1.0;  // triggers the snap branch below
                 lyricsWaveformFadeTime_ = -1.0;     // snaps the visualizer alpha
@@ -17848,6 +17833,7 @@ class Renderer {
         const bool fresh = immLastDrawn_ >= 0.0 && (now - immLastDrawn_) < 0.25;
         const float dt = fresh ? Clamp(static_cast<float>(now - immLastDrawn_), 0.001f, 0.05f) : 0.016f;
         immLastDrawn_ = now;
+        g_lastLyricsViewTime.store(now, std::memory_order_relaxed);
 
         ID2D1Layer* fadeLayer = AcquireLayer();
         if (fadeLayer) {
@@ -18028,7 +18014,7 @@ class Renderer {
 
                 target_->SetTransform(D2D1::Matrix3x2F::Scale(s, s, D2D1::Point2F(cx, yc)) * oldTransform);
 
-                if (settings.karaokeLyrics && i == idx) {
+                if (settings.karaokeLyrics && i == idx && idx >= 0) {
                     // Dim base, then a soft-edged bright wipe following the song.
                     mutedBrush_->SetOpacity(alpha * (0.62f + 0.38f * (1.0f - focus)));
                     target_->DrawTextLayout(origin, L.layout.Get(), mutedBrush_.Get(),
@@ -18206,6 +18192,7 @@ class Renderer {
     // Draws the current synced lyric line inside `area`. When the line changes,
     // the old one slides up and fades out while the new one rises in from below.
     void DrawCollapsedLyrics(const SharedState& state, D2D1_RECT_F area, double now, float alpha) {
+        g_lastLyricsViewTime.store(now, std::memory_order_relaxed);
         IDWriteTextFormat* fmt = textFormat_.Get();
         if (!fmt || !dwriteFactory_ || alpha <= 0.01f) {
             return;
@@ -25180,8 +25167,7 @@ DWORD WINAPI RenderThreadProc(void*) {
                 !DwmBackdrop::Available()) {
                 renderSettings.backdropMaterial = BackdropMaterial::None;
             }
-            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,
-                            widthSpring.value, heightSpring.value, nudgeSpring.value,
+            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,                            widthSpring.value, heightSpring.value, nudgeSpring.value,
                             hover, pinned, now, combineClosing);
         }
 
