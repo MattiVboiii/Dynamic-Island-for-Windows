@@ -411,8 +411,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: Enables a Pomodoro-style focus/break timer, startable from the island's right-click menu.
   - DiscordVoice: true
     $name: Discord Voice module
-    $description: Shows server name, channel name, and elapsed time while Discord is in a voice channel (status only — no mute/deafen). Requires a Discord Developer app + Connect once for channel details; without that, a Discord mic + UDP heuristic still shows a generic call card. Shares the island with Media (trailing) and popups like Clipboard (leading).
-  - DiscordClientId: ""
+    $description: Shows server/channel (or DM/group call) name and elapsed time while Discord is in a voice channel or private call (status only — no mute/deafen). Requires a Discord Developer app + Connect once for channel details; without that, a Discord mic + UDP heuristic still shows a generic call card. Shares the island with Media (trailing) and popups like Clipboard (leading).  - DiscordClientId: ""
     $name: Discord Application Client ID
     $description: From https://discord.com/developers/applications. You must be logged into Discord as the account that owns this app. Under OAuth2 → Redirects, add exactly http://127.0.0.1/callback (needed for the token exchange, not shown in a browser).
   - DiscordClientSecret: ""
@@ -1437,6 +1436,8 @@ struct CallSnapshot {
     bool selfMute = false;
     bool selfDeaf = false;
     bool compact = false;          // set by layout when a transient shares the island
+    bool loading = false;          // RPC joined; waiting on channel/guild details
+    bool calling = false;          // private call: ringing, remote peer not in voice yet
     std::wstring channelId;
     std::wstring channelName;
     std::wstring guildName;
@@ -2222,6 +2223,7 @@ const wchar_t* Loc(const wchar_t* english) {
         {L"Break", {nullptr, L"Pause", L"Descanso", L"Pause", L"Pausa", L"Pausa", L"Перерыв", L"Mola", L"विराम", L"休息", L"休憩", L"휴식"}},
         {L"Unknown", {nullptr, L"Inconnu", L"Desconocido", L"Unbekannt", L"Desconhecido", L"Sconosciuto", L"Неизвестно", L"Bilinmiyor", L"अज्ञात", L"未知", L"不明", L"알 수 없음"}},
         {L"Loading...", {nullptr, L"Chargement...", L"Cargando...", L"Wird geladen...", L"Carregando...", L"Caricamento...", L"Загрузка...", L"Yükleniyor...", L"लोड हो रहा है...", L"加载中...", L"読み込み中...", L"불러오는 중..."}},
+        {L"Calling...", {nullptr, L"Appel...", L"Llamando...", L"Anrufen...", L"Chamando...", L"Chiamata...", L"Звонок...", L"Aranıyor...", L"कॉल हो रही है...", L"正在呼叫...", L"通話中...", L"호출 중..."}},
         {L"Locating...", {nullptr, L"Localisation...", L"Ubicando...", L"Standort...", L"Localizando...", L"Localizzazione...", L"Определение...", L"Konum...", L"स्थान...", L"定位中...", L"位置情報...", L"위치 확인 중..."}},
         {L"Wind", {nullptr, L"Vent", L"Viento", L"Wind", L"Vento", L"Vento", L"Ветер", L"Rüzgar", L"हवा", L"风速", L"風", L"바람"}},
         {L"Feels Like", {nullptr, L"Ressenti", L"Sensación", L"Gefühlt", L"Sensação", L"Percepita", L"Ощущается", L"Hissedilen", L"महसूस", L"体感", L"体感", L"체감"}},
@@ -3137,7 +3139,18 @@ void LoadSettings() {
         g_state.brightness.active = false;
         g_brightnessInitialized = false;
     }
+    next.clipboard = Wh_GetIntSetting(L"Modules.Clipboard") != 0;
+    next.statusCountdownProgress = Wh_GetIntSetting(L"Modules.StatusCountdownProgress") != 0;
 
+    next.battery = Wh_GetIntSetting(L"Modules.Battery") != 0;
+    next.progress = Wh_GetIntSetting(L"Modules.Progress") != 0;
+    next.capsLock = Wh_GetIntSetting(L"Modules.CapsLock") != 0;
+    next.timerEnabled = Wh_GetIntSetting(L"Modules.TimerModule") != 0;
+    next.discordVoice = Wh_GetIntSetting(L"Modules.DiscordVoice") != 0;
+    next.discordClientId = GetStringSettingCopy(L"Modules.DiscordClientId");
+    next.discordClientSecret = GetStringSettingCopy(L"Modules.DiscordClientSecret");
+
+    next.hideShowHotkeyEnabled = Wh_GetIntSetting(L"Shortcuts.HideShowHotkeyEnabled") != 0;
     const std::wstring hotkeyModStr = GetStringSettingCopy(L"Shortcuts.HideShowModifiers");
     if (EqualsNoCase(hotkeyModStr, L"ctrl_shift")) {
         next.hideShowModifiers = MOD_CONTROL | MOD_SHIFT;
@@ -7405,6 +7418,163 @@ bool ExtractJsonStringField(const std::string& json, const char* fieldKey, std::
     return false;
 }
 
+// Like ExtractJsonStringField, but also accepts JSON null. Returns false if the key
+// is missing or the value is neither a string nor null.
+bool ExtractJsonStringFieldNullable(const std::string& json, const char* fieldKey,
+                                    std::string* outRaw, bool* isNull) {
+    outRaw->clear();
+    *isNull = false;
+    const std::string key = std::string("\"") + fieldKey + "\"";
+    size_t pos = json.find(key);
+    if (pos == std::string::npos) {
+        return false;
+    }
+    pos += key.size();
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\r' ||
+                                 json[pos] == '\n')) {
+        ++pos;
+    }
+    if (pos >= json.size() || json[pos] != ':') {
+        return false;
+    }
+    ++pos;
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\r' ||
+                                 json[pos] == '\n')) {
+        ++pos;
+    }
+    if (pos >= json.size()) {
+        return false;
+    }
+    if (json[pos] == 'n') {
+        *isNull = true;
+        return true;
+    }
+    if (json[pos] != '"') {
+        return false;
+    }
+    ++pos;
+    std::string result;
+    bool escaped = false;
+    for (size_t i = pos; i < json.size(); ++i) {
+        char c = json[i];
+        if (escaped) {
+            result.push_back(c);
+            escaped = false;
+            continue;
+        }
+        if (c == '\\') {
+            result.push_back(c);
+            escaped = true;
+            continue;
+        }
+        if (c == '"') {
+            *outRaw = result;
+            return true;
+        }
+        result.push_back(c);
+    }
+    return false;
+}
+
+// Extracts the JSON object or array that begins at valueStart (must point at '{' or '[').
+bool SliceJsonContainerAt(const std::string& json, size_t valueStart, std::string* out) {
+    if (valueStart >= json.size()) {
+        return false;
+    }
+    const char open = json[valueStart];
+    const char close = (open == '{') ? '}' : (open == '[') ? ']' : '\0';
+    if (close == '\0') {
+        return false;
+    }
+    int depth = 0;
+    bool inString = false;
+    bool escaped = false;
+    for (size_t i = valueStart; i < json.size(); ++i) {
+        const char c = json[i];
+        if (inString) {
+            if (escaped) {
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                inString = false;
+            }
+            continue;
+        }
+        if (c == '"') {
+            inString = true;
+        } else if (c == open) {
+            ++depth;
+        } else if (c == close) {
+            --depth;
+            if (depth == 0) {
+                *out = json.substr(valueStart, i - valueStart + 1);
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+bool ExtractJsonArrayField(const std::string& json, const char* fieldKey, std::string* outArray) {
+    const std::string key = std::string("\"") + fieldKey + "\"";
+    size_t pos = json.find(key);
+    if (pos == std::string::npos) {
+        return false;
+    }
+    pos += key.size();
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\r' ||
+                                 json[pos] == '\n')) {
+        ++pos;
+    }
+    if (pos >= json.size() || json[pos] != ':') {
+        return false;
+    }
+    ++pos;
+    while (pos < json.size() && (json[pos] == ' ' || json[pos] == '\t' || json[pos] == '\r' ||
+                                 json[pos] == '\n')) {
+        ++pos;
+    }
+    if (pos >= json.size() || json[pos] != '[') {
+        return false;
+    }
+    return SliceJsonContainerAt(json, pos, outArray);
+}
+
+bool ExtractJsonStringArrayField(const std::string& json, const char* fieldKey,
+                                 std::vector<std::string>* out) {
+    out->clear();
+    std::string arrayRaw;
+    if (!ExtractJsonArrayField(json, fieldKey, &arrayRaw)) {
+        return false;
+    }
+    bool inString = false;
+    bool escaped = false;
+    std::string current;
+    for (size_t i = 0; i < arrayRaw.size(); ++i) {
+        const char c = arrayRaw[i];
+        if (inString) {
+            if (escaped) {
+                current.push_back(c);
+                escaped = false;
+            } else if (c == '\\') {
+                escaped = true;
+            } else if (c == '"') {
+                inString = false;
+                out->push_back(std::move(current));
+                current.clear();
+            } else {
+                current.push_back(c);
+            }
+            continue;
+        }
+        if (c == '"') {
+            inString = true;
+        }
+    }
+    return !out->empty();
+}
+
 // Splits a top-level JSON array "[ {...}, {...} ]" into the substrings for
 // each object, respecting nested braces and quoted strings.
 std::vector<std::string> SplitJsonObjectArray(const std::string& json) {
@@ -9860,42 +10030,388 @@ std::string NewNonce() {
     return buf;
 }
 
-void ApplyDiscordVoiceChannelJson(const std::string& dataJson, bool connected) {
+std::wstring DiscordUtf8FieldToWide(const std::string& raw) {
+    if (raw.empty()) {
+        return {};
+    }
+    std::wstring name = JsonStringUnescape(raw);
+    if (name.empty()) {
+        name = DiscordUtf8ToWide(raw);
+    }
+    return name;
+}
+
+std::wstring DiscordRecipientDisplayName(const std::string& userJson) {
+    std::string globalName, username, displayName;
+    ExtractJsonStringField(userJson, "global_name", &globalName);
+    ExtractJsonStringField(userJson, "display_name", &displayName);
+    ExtractJsonStringField(userJson, "username", &username);
+    if (!globalName.empty()) {
+        return DiscordUtf8FieldToWide(globalName);
+    }
+    if (!displayName.empty()) {
+        return DiscordUtf8FieldToWide(displayName);
+    }
+    if (!username.empty()) {
+        return DiscordUtf8FieldToWide(username);
+    }
+    return {};
+}
+
+std::wstring DiscordVoiceStateDisplayName(const std::string& stateJson) {
+    std::string nick;
+    ExtractJsonStringField(stateJson, "nick", &nick);
+    std::wstring name = DiscordUtf8FieldToWide(nick);
+    if (!name.empty()) {
+        return name;
+    }
+    return DiscordRecipientDisplayName(stateJson);
+}
+
+bool DiscordIsSelfUserJson(const std::string& personJson, const std::string& selfUserId) {
+    if (selfUserId.empty()) {
+        return false;
+    }
+    std::string id;
+    return ExtractJsonStringField(personJson, "id", &id) && id == selfUserId;
+}
+
+void DiscordAddUniqueName(std::vector<std::wstring>* names, std::wstring name) {
+    if (!names || name.empty()) {
+        return;
+    }
+    for (const auto& existing : *names) {
+        if (existing == name) {
+            return;
+        }
+    }
+    names->push_back(std::move(name));
+}
+
+void DiscordAddUniqueId(std::vector<std::string>* ids, const std::string& id,
+                        const std::string& selfUserId) {
+    if (!ids || id.empty() || id == selfUserId) {
+        return;
+    }
+    for (const auto& existing : *ids) {
+        if (existing == id) {
+            return;
+        }
+    }
+    ids->push_back(id);
+}
+
+// Peer user ids for a private call — used when the other person has not joined voice yet
+// (voice_states then only contains self, so we need recipients / recipient_ids / messages).
+std::vector<std::string> DiscordPrivateCallPeerIds(const std::string& dataJson,
+                                                   const std::string& selfUserId) {
+    std::vector<std::string> ids;
+
+    std::string recipientsRaw;
+    if (ExtractJsonArrayField(dataJson, "recipients", &recipientsRaw)) {
+        for (const std::string& recipient : SplitJsonObjectArray(recipientsRaw)) {
+            std::string id;
+            if (ExtractJsonStringField(recipient, "id", &id)) {
+                DiscordAddUniqueId(&ids, id, selfUserId);
+            }
+        }
+    }
+
+    std::vector<std::string> recipientIds;
+    if (ExtractJsonStringArrayField(dataJson, "recipient_ids", &recipientIds)) {
+        for (const std::string& id : recipientIds) {
+            DiscordAddUniqueId(&ids, id, selfUserId);
+        }
+    }
+
+    std::string statesRaw;
+    if (ExtractJsonArrayField(dataJson, "voice_states", &statesRaw)) {
+        for (const std::string& state : SplitJsonObjectArray(statesRaw)) {
+            std::string id;
+            if (ExtractJsonStringField(state, "id", &id)) {
+                DiscordAddUniqueId(&ids, id, selfUserId);
+            }
+        }
+    }
+
+    std::string messagesRaw;
+    if (ExtractJsonArrayField(dataJson, "messages", &messagesRaw)) {
+        for (const std::string& message : SplitJsonObjectArray(messagesRaw)) {
+            const size_t authorKey = message.find("\"author\"");
+            if (authorKey == std::string::npos) {
+                continue;
+            }
+            size_t p = authorKey + 8;
+            while (p < message.size() &&
+                   (message[p] == ' ' || message[p] == '\t' || message[p] == ':' ||
+                    message[p] == '\r' || message[p] == '\n')) {
+                ++p;
+            }
+            std::string authorJson;
+            if (p < message.size() && message[p] == '{' &&
+                SliceJsonContainerAt(message, p, &authorJson)) {
+                std::string id;
+                if (ExtractJsonStringField(authorJson, "id", &id)) {
+                    DiscordAddUniqueId(&ids, id, selfUserId);
+                }
+            }
+        }
+    }
+
+    return ids;
+}
+
+// Builds a display label for DM / group-DM calls. Prefer recipients (present even while
+// ringing); fall back to voice_states and recent message authors.
+std::wstring DiscordPrivateCallLabel(const std::string& dataJson, int channelType,
+                                     const std::string& selfUserId) {
+    std::vector<std::wstring> names;
+
+    std::string recipientsRaw;
+    if (ExtractJsonArrayField(dataJson, "recipients", &recipientsRaw)) {
+        for (const std::string& recipient : SplitJsonObjectArray(recipientsRaw)) {
+            if (DiscordIsSelfUserJson(recipient, selfUserId)) {
+                continue;
+            }
+            DiscordAddUniqueName(&names, DiscordRecipientDisplayName(recipient));
+        }
+    }
+
+    if (names.empty()) {
+        std::string statesRaw;
+        if (ExtractJsonArrayField(dataJson, "voice_states", &statesRaw)) {
+            for (const std::string& state : SplitJsonObjectArray(statesRaw)) {
+                if (DiscordIsSelfUserJson(state, selfUserId)) {
+                    continue;
+                }
+                DiscordAddUniqueName(&names, DiscordVoiceStateDisplayName(state));
+            }
+        }
+    }
+
+    // Ringing / alone in the call: other person is not in voice_states yet. Recent DM
+    // messages still carry their author — use that so the island shows a real name.
+    if (names.empty()) {
+        std::string messagesRaw;
+        if (ExtractJsonArrayField(dataJson, "messages", &messagesRaw)) {
+            for (const std::string& message : SplitJsonObjectArray(messagesRaw)) {
+                const size_t authorKey = message.find("\"author\"");
+                if (authorKey == std::string::npos) {
+                    continue;
+                }
+                size_t p = authorKey + 8;
+                while (p < message.size() &&
+                       (message[p] == ' ' || message[p] == '\t' || message[p] == ':' ||
+                        message[p] == '\r' || message[p] == '\n')) {
+                    ++p;
+                }
+                std::string authorJson;
+                if (p < message.size() && message[p] == '{' &&
+                    SliceJsonContainerAt(message, p, &authorJson)) {
+                    if (DiscordIsSelfUserJson(authorJson, selfUserId)) {
+                        continue;
+                    }
+                    DiscordAddUniqueName(&names, DiscordRecipientDisplayName(authorJson));
+                }
+            }
+        }
+    }
+
+    if (channelType == 1) {
+        return names.empty() ? L"Private Call" : names.front();
+    }
+    if (names.empty()) {
+        return L"Group Call";
+    }
+    std::wstring label = names.front();
+    for (size_t i = 1; i < names.size() && i < 3; ++i) {
+        label += L", ";
+        label += names[i];
+    }
+    if (names.size() > 3) {
+        label += L"…";
+    }
+    return label;
+}
+
+bool DiscordPrivateCallNameIsPlaceholder(const std::wstring& name) {
+    return name.empty() || name == L"Private Call" || name == L"Group Call" ||
+           name == L"In a call";
+}
+
+// True when someone other than the local user is already in the voice channel.
+// While ringing (callee has not joined), voice_states typically only contains self.
+bool DiscordPrivateCallHasRemoteParticipant(const std::string& dataJson,
+                                            const std::string& selfUserId) {
+    std::string statesRaw;
+    if (!ExtractJsonArrayField(dataJson, "voice_states", &statesRaw)) {
+        return false;
+    }
+    const std::vector<std::string> states = SplitJsonObjectArray(statesRaw);
+    if (states.empty()) {
+        return false;
+    }
+    if (selfUserId.empty()) {
+        return states.size() > 1;
+    }
+    for (const std::string& state : states) {
+        if (!DiscordIsSelfUserJson(state, selfUserId)) {
+            return true;
+        }
+    }
+    return false;
+}
+
+void ApplyDiscordUserToPrivateCall(const std::string& userJson, const std::string& selfUserId) {
+    if (DiscordIsSelfUserJson(userJson, selfUserId)) {
+        return;
+    }
+    const std::wstring name = DiscordRecipientDisplayName(userJson);
+    if (name.empty()) {
+        return;
+    }
     std::lock_guard lock(g_stateMutex);
-    if (!connected || dataJson.empty() || dataJson == "null") {
-        if (g_state.call.source == CallDetectSource::Rpc) {
-            g_state.call.active = false;
-            g_state.call.source = CallDetectSource::None;
-            g_state.call.controlsEnabled = false;
-            g_state.call.channelId.clear();
-            g_state.call.channelName.clear();
-            g_state.call.guildName.clear();
+    if (g_state.call.source != CallDetectSource::Rpc || !g_state.call.active) {
+        return;
+    }
+    if (g_state.call.guildName == L"Direct Message") {
+        if (g_state.call.loading || DiscordPrivateCallNameIsPlaceholder(g_state.call.channelName)) {
+            g_state.call.channelName = name;
+            g_state.call.loading = false;
         }
         return;
+    }
+    if (g_state.call.guildName == L"Group DM") {
+        if (DiscordPrivateCallNameIsPlaceholder(g_state.call.channelName)) {
+            g_state.call.channelName = name;
+        } else if (g_state.call.channelName.find(name) == std::wstring::npos) {
+            // Append a few peer names as GET_USER replies arrive.
+            const size_t commas = static_cast<size_t>(
+                std::count(g_state.call.channelName.begin(), g_state.call.channelName.end(), L','));
+            if (commas < 2 && g_state.call.channelName.find(L"…") == std::wstring::npos) {
+                g_state.call.channelName += L", ";
+                g_state.call.channelName += name;
+            }
+        }
+        g_state.call.loading = false;
+    }
+}
+
+void ClearDiscordRpcCallLocked() {
+    if (g_state.call.source != CallDetectSource::Rpc) {
+        return;
+    }
+    g_state.call = CallSnapshot{};
+}
+
+// VOICE_CHANNEL_SELECT fired — show the call card in a loading state until
+// GET_CHANNEL / GET_SELECTED_VOICE_CHANNEL returns real names.
+void BeginDiscordVoiceChannelLoad(const std::string& channelId) {
+    std::lock_guard lock(g_stateMutex);
+    const std::wstring wideId = DiscordUtf8ToWide(channelId);
+    if (g_state.call.active && g_state.call.source == CallDetectSource::Rpc &&
+        g_state.call.channelId == wideId && !g_state.call.loading &&
+        !g_state.call.channelName.empty()) {
+        return;  // already resolved for this channel
+    }
+    const bool wasActive = g_state.call.active && g_state.call.source == CallDetectSource::Rpc;
+    const bool channelChanged = g_state.call.channelId != wideId;
+    g_state.call.active = true;
+    g_state.call.source = CallDetectSource::Rpc;
+    g_state.call.controlsEnabled = false;
+    g_state.call.loading = true;
+    g_state.call.calling = false;
+    g_state.call.channelId = wideId;
+    g_state.call.channelName.clear();
+    g_state.call.guildName.clear();
+    if (!wasActive || channelChanged) {
+        g_state.call.startedAt = NowSeconds();
+    }
+}
+
+void FinishDiscordVoiceLoadFallback() {
+    std::lock_guard lock(g_stateMutex);
+    if (g_state.call.source != CallDetectSource::Rpc || !g_state.call.loading) {
+        return;
+    }
+    g_state.call.loading = false;
+    if (g_state.call.channelName.empty()) {
+        g_state.call.channelName = L"In a call";
+    }
+    if (g_state.call.guildName.empty()) {
+        g_state.call.guildName = L"Discord";
+    }
+}
+
+void ApplyDiscordVoiceChannelJson(const std::string& dataJson, bool connected,
+                                  const std::string& selfUserId = {}) {
+    std::lock_guard lock(g_stateMutex);
+    if (!connected || dataJson.empty() || dataJson == "null") {
+        ClearDiscordRpcCallLocked();        return;
     }
     std::string idRaw, nameRaw, guildIdRaw;
     ExtractJsonStringField(dataJson, "id", &idRaw);
     ExtractJsonStringField(dataJson, "name", &nameRaw);
-    ExtractJsonStringField(dataJson, "guild_id", &guildIdRaw);
+    bool guildIdNull = false;
+    if (!ExtractJsonStringFieldNullable(dataJson, "guild_id", &guildIdRaw, &guildIdNull)) {
+        guildIdRaw.clear();
+        guildIdNull = true;  // missing guild_id ⇒ private/DM channel
+    }
+    const bool isPrivateCall = guildIdNull || guildIdRaw.empty();
+    double typeNum = 0.0;
+    const int channelType =
+        ExtractJsonNumberField(dataJson, "type", &typeNum) ? static_cast<int>(typeNum) : -1;
+
     const bool wasActive = g_state.call.active && g_state.call.source == CallDetectSource::Rpc;
     const std::wstring prevChannelId = g_state.call.channelId;
+    const std::wstring wideId = DiscordUtf8ToWide(idRaw);
     g_state.call.active = true;
     g_state.call.source = CallDetectSource::Rpc;
-    g_state.call.controlsEnabled = false;  // status-only: channel/server + timer
-    g_state.call.channelId = DiscordUtf8ToWide(idRaw);
-    g_state.call.channelName = JsonStringUnescape(nameRaw);
-    if (g_state.call.channelName.empty() && !nameRaw.empty()) {
-        g_state.call.channelName = DiscordUtf8ToWide(nameRaw);
-    }
-    if (g_state.call.channelName.empty()) {
-        g_state.call.channelName = L"Voice channel";
-    }
-    if (g_state.call.channelId != prevChannelId) {
-        g_state.call.guildName.clear();
+    g_state.call.controlsEnabled = false;
+    g_state.call.channelId = wideId;
+    g_state.call.channelName = DiscordUtf8FieldToWide(nameRaw);
+    if (isPrivateCall) {
+        g_state.call.guildName = (channelType == 3) ? L"Group DM" : L"Direct Message";
+        const bool hasRemote =
+            DiscordPrivateCallHasRemoteParticipant(dataJson, selfUserId);
+        g_state.call.calling = !hasRemote;
+        g_state.call.loading = false;
+        if (hasRemote) {
+            // Someone joined — show their name (or a group label).
+            const bool hasCustomGroupName = channelType == 3 && !g_state.call.channelName.empty();
+            if (!hasCustomGroupName) {
+                const std::wstring label =
+                    DiscordPrivateCallLabel(dataJson, channelType, selfUserId);
+                if (!DiscordPrivateCallNameIsPlaceholder(label)) {
+                    g_state.call.channelName = label;
+                } else if (DiscordPrivateCallNameIsPlaceholder(g_state.call.channelName)) {
+                    g_state.call.channelName =
+                        label.empty() ? ((channelType == 3) ? L"Group Call" : L"Private Call")
+                                      : label;
+                }
+            }
+            if (g_state.call.channelName.empty()) {
+                g_state.call.channelName = (channelType == 3) ? L"Group Call" : L"Private Call";
+            }
+        } else {
+            // Still ringing — UI shows Calling... until a remote voice_state appears.
+            g_state.call.channelName.clear();
+        }
+    } else {
+        g_state.call.calling = false;
+        if (g_state.call.channelName.empty()) {
+            g_state.call.channelName = L"Voice channel";
+        }
+        if (wideId != prevChannelId) {
+            g_state.call.guildName.clear();
+        }
+        // Keep loading until GET_GUILD fills the server name (or the timeout fires).
+        g_state.call.loading = g_state.call.guildName.empty();
     }
     if (!wasActive) {
         g_state.call.startedAt = NowSeconds();
-    }
+    } else if (wideId != prevChannelId) {
+        g_state.call.startedAt = NowSeconds();    }
 }
 
 void ApplyDiscordGuildJson(const std::string& dataJson) {
@@ -9910,7 +10426,7 @@ void ApplyDiscordGuildJson(const std::string& dataJson) {
     std::lock_guard lock(g_stateMutex);
     if (g_state.call.source == CallDetectSource::Rpc && g_state.call.active) {
         g_state.call.guildName = std::move(name);
-    }
+        g_state.call.loading = false;    }
 }
 
 DWORD WINAPI DiscordRpcThreadProc(void*) {
@@ -9923,7 +10439,115 @@ DWORD WINAPI DiscordRpcThreadProc(void*) {
     // One-shot authorize: only fire AUTHORIZE once per Connect click, never every loop.
     bool authorizePending = false;
     bool authenticateAttempted = false;
+    // Authoritative channel id from VOICE_CHANNEL_SELECT. Private/DM calls often make
+    // GET_SELECTED_VOICE_CHANNEL return null; keep this so we can GET_CHANNEL instead.
+    std::string selectedVoiceChannelId;
+    std::string selfUserId;  // from AUTHENTICATE — used to label private calls without "you"
 
+    auto extractRpcData = [](const std::string& frame, std::string* dataOut,
+                             bool* dataIsNull) -> bool {
+        *dataIsNull = false;
+        dataOut->clear();
+        const size_t dataPos = frame.find("\"data\":");
+        if (dataPos == std::string::npos) {
+            return false;
+        }
+        size_t p = dataPos + 7;
+        while (p < frame.size() && (frame[p] == ' ' || frame[p] == '\t')) {
+            ++p;
+        }
+        if (p >= frame.size()) {
+            return false;
+        }
+        if (frame[p] == 'n') {
+            *dataIsNull = true;
+            *dataOut = "null";
+            return true;
+        }
+        if (frame[p] == '{') {
+            return SliceJsonContainerAt(frame, p, dataOut);
+        }
+        return false;
+    };
+
+    auto requestGetChannel = [&](const std::string& channelId) {
+        if (channelId.empty() || ipc.pipe == INVALID_HANDLE_VALUE) {
+            return;
+        }
+        const std::string nonce = NewNonce();
+        ipc.WriteFrame(1, std::string("{\"cmd\":\"GET_CHANNEL\",\"args\":{\"channel_id\":\"") +
+                              channelId + "\"},\"nonce\":\"" + nonce + "\"}");
+    };
+
+    auto requestGetGuild = [&](const std::string& guildId) {
+        if (guildId.empty() || ipc.pipe == INVALID_HANDLE_VALUE) {
+            return;
+        }
+        const std::string nonce = NewNonce();
+        ipc.WriteFrame(1, std::string("{\"cmd\":\"GET_GUILD\",\"args\":{\"guild_id\":\"") + guildId +
+                              "\"},\"nonce\":\"" + nonce + "\"}");
+    };
+
+    auto requestGetUser = [&](const std::string& userId) {
+        if (userId.empty() || ipc.pipe == INVALID_HANDLE_VALUE) {
+            return;
+        }
+        const std::string nonce = NewNonce();
+        ipc.WriteFrame(1, std::string("{\"cmd\":\"GET_USER\",\"args\":{\"id\":\"") + userId +
+                              "\"},\"nonce\":\"" + nonce + "\"}");
+    };
+
+    auto applyChannelObject = [&](const std::string& channelJson) {
+        ApplyDiscordVoiceChannelJson(channelJson, true, selfUserId);
+        std::string idRaw;
+        if (ExtractJsonStringField(channelJson, "id", &idRaw) && !idRaw.empty()) {
+            selectedVoiceChannelId = idRaw;
+        }
+        std::string guildId;
+        bool guildIdNull = false;
+        if (ExtractJsonStringFieldNullable(channelJson, "guild_id", &guildId, &guildIdNull) &&
+            !guildIdNull && !guildId.empty()) {
+            requestGetGuild(guildId);
+        }
+        // While a private call is connected (remote peer joined), prefetch display names.
+        bool prefetchPeerNames = false;
+        {
+            std::lock_guard lock(g_stateMutex);
+            prefetchPeerNames = g_state.call.active && !g_state.call.calling && !g_state.call.loading &&
+                                (g_state.call.guildName == L"Direct Message" ||
+                                 g_state.call.guildName == L"Group DM") &&
+                                DiscordPrivateCallNameIsPlaceholder(g_state.call.channelName);
+        }
+        if (prefetchPeerNames) {
+            const auto peerIds = DiscordPrivateCallPeerIds(channelJson, selfUserId);
+            for (size_t i = 0; i < peerIds.size() && i < 5; ++i) {
+                requestGetUser(peerIds[i]);
+            }
+        }
+    };
+
+    auto captureSelfUserId = [&](const std::string& authFrame) {
+        std::string dataJson;
+        bool dataIsNull = false;
+        if (!extractRpcData(authFrame, &dataJson, &dataIsNull) || dataIsNull) {
+            return;
+        }
+        const size_t userKey = dataJson.find("\"user\"");
+        if (userKey == std::string::npos) {
+            return;
+        }
+        size_t p = userKey + 6;
+        while (p < dataJson.size() &&
+               (dataJson[p] == ' ' || dataJson[p] == '\t' || dataJson[p] == ':' ||
+                dataJson[p] == '\r' || dataJson[p] == '\n')) {
+            ++p;
+        }
+        std::string userJson;
+        if (p < dataJson.size() && dataJson[p] == '{' &&
+            SliceJsonContainerAt(dataJson, p, &userJson)) {
+            ExtractJsonStringField(userJson, "id", &selfUserId);
+        }
+    };
     auto ensurePipe = [&](const Settings& settings) -> bool {
         if (ipc.pipe != INVALID_HANDLE_VALUE) {
             return true;
@@ -9966,7 +10590,8 @@ DWORD WINAPI DiscordRpcThreadProc(void*) {
             authorizePending = false;
             authenticateAttempted = false;
             accessToken.clear();
-            g_discordRpcWantConnect.store(false);
+            selectedVoiceChannelId.clear();
+            selfUserId.clear();            g_discordRpcWantConnect.store(false);
             {
                 std::lock_guard lock(g_stateMutex);
                 if (g_state.call.source == CallDetectSource::Rpc) {
@@ -10024,10 +10649,12 @@ DWORD WINAPI DiscordRpcThreadProc(void*) {
                 }
 
                 const std::string nonce = NewNonce();
+                // dm_channels.read helps GET_CHANNEL resolve private/group DM calls;
+                // rpc alone is often enough, but request both for broader Discord builds.
                 std::string authz = std::string("{\"cmd\":\"AUTHORIZE\",\"args\":{\"client_id\":\"") +
                                     DiscordWideToUtf8(settings.discordClientId) +
-                                    "\",\"scopes\":[\"rpc\",\"rpc.voice.read\",\"identify\"]";
-                if (haveRpcToken) {
+                                    "\",\"scopes\":[\"rpc\",\"rpc.voice.read\",\"dm_channels.read\","
+                                    "\"identify\"]";                if (haveRpcToken) {
                     authz += ",\"rpc_token\":\"";
                     authz += rpcToken;
                     authz += "\"";
@@ -10101,11 +10728,11 @@ DWORD WINAPI DiscordRpcThreadProc(void*) {
                 frame.find("\"cmd\":\"AUTHENTICATE\"") != std::string::npos) {
                 g_discordRpcAuthenticated.store(true);
                 subscribed = false;
-                Wh_Log(L"Discord RPC: authenticated");
+                captureSelfUserId(frame);                Wh_Log(L"Discord RPC: authenticated");
             } else {
                 Wh_Log(L"Discord RPC: AUTHENTICATE failed; clearing token");
                 accessToken.clear();
-                ClearDiscordAccessToken();
+                selfUserId.clear();                ClearDiscordAccessToken();
                 g_discordRpcAuthenticated.store(false);
             }
         }
@@ -10152,41 +10779,103 @@ DWORD WINAPI DiscordRpcThreadProc(void*) {
                 subscribed = false;
                 break;
             }
-            if (frame.find("\"cmd\":\"GET_SELECTED_VOICE_CHANNEL\"") != std::string::npos ||
+            // VOICE_CHANNEL_SELECT data is {channel_id, guild_id} — not a full channel object.
+            // Private/DM calls report guild_id: null; resolve details via GET_CHANNEL.
+            // Require DISPATCH so SUBSCRIBE acknowledgements (data.evt = name) are ignored.
+            if (frame.find("\"cmd\":\"DISPATCH\"") != std::string::npos &&
                 frame.find("\"evt\":\"VOICE_CHANNEL_SELECT\"") != std::string::npos) {
-                const size_t dataPos = frame.find("\"data\":");
-                if (dataPos != std::string::npos) {
-                    size_t p = dataPos + 7;
-                    while (p < frame.size() && (frame[p] == ' ' || frame[p] == '\t')) {
-                        ++p;
-                    }
-                    if (p < frame.size() && frame[p] == 'n') {
+                std::string dataJson;
+                bool dataIsNull = false;
+                if (extractRpcData(frame, &dataJson, &dataIsNull)) {
+                    if (dataIsNull) {
+                        selectedVoiceChannelId.clear();
                         ApplyDiscordVoiceChannelJson("null", false);
-                    } else if (p < frame.size() && frame[p] == '{') {
-                        const std::string channelJson = frame.substr(p);
-                        ApplyDiscordVoiceChannelJson(channelJson, true);
-                        std::string guildId;
-                        ExtractJsonStringField(channelJson, "guild_id", &guildId);
-                        if (!guildId.empty()) {
-                            const std::string gNonce = NewNonce();
-                            ipc.WriteFrame(
-                                1, std::string("{\"cmd\":\"GET_GUILD\",\"args\":{\"guild_id\":\"") +
-                                       guildId + "\"},\"nonce\":\"" + gNonce + "\"}");
+                    } else {
+                        std::string channelId;
+                        bool channelIdNull = false;
+                        const bool haveChannelId = ExtractJsonStringFieldNullable(
+                            dataJson, "channel_id", &channelId, &channelIdNull);
+                        if (!haveChannelId || channelIdNull || channelId.empty()) {
+                            selectedVoiceChannelId.clear();
+                            ApplyDiscordVoiceChannelJson("null", false);
+                        } else {
+                            selectedVoiceChannelId = channelId;
+                            std::string guildId;
+                            bool guildIdNull = false;
+                            const bool haveGuildId = ExtractJsonStringFieldNullable(
+                                dataJson, "guild_id", &guildId, &guildIdNull);
+                            const bool isPrivateCall =
+                                !haveGuildId || guildIdNull || guildId.empty();
+                            BeginDiscordVoiceChannelLoad(channelId);
+                            requestGetChannel(channelId);
+                            if (!isPrivateCall) {
+                                requestGetGuild(guildId);
+                            }                        }
+                    }
+                }
+            }
+            const bool isSelectedVoice =
+                frame.find("\"cmd\":\"GET_SELECTED_VOICE_CHANNEL\"") != std::string::npos;
+            const bool isGetChannel = frame.find("\"cmd\":\"GET_CHANNEL\"") != std::string::npos;
+            if (isSelectedVoice || isGetChannel) {
+                if (frame.find("\"evt\":\"ERROR\"") != std::string::npos) {
+                    // Private GET_CHANNEL can fail without dm_channels.read — show fallback.
+                    if (isGetChannel && !selectedVoiceChannelId.empty()) {
+                        FinishDiscordVoiceLoadFallback();
+                    }
+                } else {
+                    std::string dataJson;
+                    bool dataIsNull = false;
+                    if (extractRpcData(frame, &dataJson, &dataIsNull)) {
+                        if (dataIsNull) {
+                            // GET_SELECTED often returns null for DM/group calls while connected.
+                            if (selectedVoiceChannelId.empty()) {
+                                ApplyDiscordVoiceChannelJson("null", false);
+                            } else if (isSelectedVoice) {
+                                bool needsFetch = false;
+                                {
+                                    std::lock_guard lock(g_stateMutex);
+                                    const bool privateCall =
+                                        g_state.call.guildName == L"Direct Message" ||
+                                        g_state.call.guildName == L"Group DM";
+                                    // Re-fetch private calls so participant names update as
+                                    // people join; guild channels only need a one-shot resolve.
+                                    needsFetch =
+                                        !g_state.call.active ||
+                                        g_state.call.source != CallDetectSource::Rpc ||
+                                        g_state.call.loading || privateCall ||
+                                        g_state.call.channelId !=
+                                            DiscordUtf8ToWide(selectedVoiceChannelId);
+                                }
+                                if (needsFetch) {
+                                    requestGetChannel(selectedVoiceChannelId);
+                                }
+                            }
+                        } else {
+                            applyChannelObject(dataJson);
                         }
                     }
                 }
             }
-            if (frame.find("\"cmd\":\"GET_GUILD\"") != std::string::npos &&
-                frame.find("\"evt\":\"ERROR\"") == std::string::npos) {
-                const size_t dataPos = frame.find("\"data\":");
-                if (dataPos != std::string::npos) {
-                    size_t p = dataPos + 7;
-                    while (p < frame.size() && (frame[p] == ' ' || frame[p] == '\t')) {
-                        ++p;
+            if (frame.find("\"cmd\":\"GET_GUILD\"") != std::string::npos) {
+                if (frame.find("\"evt\":\"ERROR\"") != std::string::npos) {
+                    FinishDiscordVoiceLoadFallback();
+                } else {
+                    std::string dataJson;
+                    bool dataIsNull = false;
+                    if (extractRpcData(frame, &dataJson, &dataIsNull) && !dataIsNull) {
+                        ApplyDiscordGuildJson(dataJson);
                     }
-                    if (p < frame.size() && frame[p] == '{') {
-                        ApplyDiscordGuildJson(frame.substr(p));
-                    }
+                }
+            }
+            if (frame.find("\"cmd\":\"GET_USER\"") != std::string::npos) {
+                if (frame.find("\"evt\":\"ERROR\"") != std::string::npos) {
+                    FinishDiscordVoiceLoadFallback();
+                } else {
+                    std::string dataJson;
+                    bool dataIsNull = false;
+                    if (extractRpcData(frame, &dataJson, &dataIsNull) && !dataIsNull) {
+                        ApplyDiscordUserToPrivateCall(dataJson, selfUserId);                    }
                 }
             }
             if (frame.find("\"evt\":\"VOICE_CONNECTION_STATUS\"") != std::string::npos) {
@@ -10308,16 +10997,29 @@ void UpdateActiveCall() {
 
     EnsureDiscordRpcSession(settings);
 
+    const double now = NowSeconds();
+
     // When Local RPC is authenticated it owns join/leave + channel/server names.
     if (g_discordRpcAuthenticated.load(std::memory_order_relaxed)) {
-        return;
+        // Don't leave the loading card stuck if GET_CHANNEL never arrives.
+        std::lock_guard lock(g_stateMutex);
+        if (g_state.call.active && g_state.call.loading &&
+            g_state.call.source == CallDetectSource::Rpc &&
+            now - g_state.call.startedAt > 2.5) {
+            g_state.call.loading = false;
+            if (g_state.call.channelName.empty()) {
+                g_state.call.channelName = L"In a call";
+            }
+            if (g_state.call.guildName.empty()) {
+                g_state.call.guildName = L"Discord";
+            }
+        }        return;
     }
 
     // Fallback: Discord mic + non-loopback UDP → generic status card (no channel name).
     static double pendingSince = 0.0;
     static double clearSince = 0.0;
     static bool latched = false;
-    const double now = NowSeconds();
     const bool heuristic = DiscordHeuristicVoiceActive(nullptr);
 
     if (heuristic) {
@@ -10337,7 +11039,7 @@ void UpdateActiveCall() {
             g_state.call.active = true;
             g_state.call.source = CallDetectSource::Heuristic;
             g_state.call.controlsEnabled = false;
-            g_state.call.channelName = L"In a call";
+            g_state.call.loading = false;            g_state.call.channelName = L"In a call";
             g_state.call.guildName.clear();
             g_state.call.startedAt = now;
             g_state.call.selfMute = false;
@@ -13156,8 +13858,7 @@ class Renderer {
                     pillRects_[pillCount_] = islandRect;
                     pillRadii_[pillCount_] = radius;
                     ++pillCount_;
-                }
-                DrawSoftShadow(islandRect, radius, settings);
+                }                DrawSoftShadow(islandRect, radius, settings);
                 IslandKind chromeKind = primary.kind;
                 for (int i = 0; i < n; ++i) {
                     if (bays[i]->kind == IslandKind::Media) {
@@ -13227,8 +13928,7 @@ class Renderer {
                         pillRects_[pillCount_] = islandRect;
                         pillRadii_[pillCount_] = radius;
                         ++pillCount_;
-                    }
-                    DrawSoftShadow(islandRect, radius, settings);
+                    }                    DrawSoftShadow(islandRect, radius, settings);
                     DrawPillSurface(islandRect, radius, IslandKind::Media, settings);
 
                     const float mediaW = primary.width;
@@ -14101,7 +14801,8 @@ class Renderer {
         }
         // Only the chrome silhouette owns a backdrop slot. Content-only DrawPill
         // calls (combined bays) must not register sub-rects or the blur fragments.
-        if (drawChrome && pillCount_ < DwmBackdrop::kMaxPills) {            pillRects_[pillCount_] = rect;
+        if (drawChrome && pillCount_ < DwmBackdrop::kMaxPills) {
+            pillRects_[pillCount_] = rect;
             pillRadii_[pillCount_] = radius;
             ++pillCount_;
         }
@@ -14168,6 +14869,9 @@ class Renderer {
             case IslandKind::Call:
                 DrawCall(state, unscaledRect, settings, now);
                 break;
+            case IslandKind::Call:
+                DrawCall(state, unscaledRect, settings, now);
+                break;
             case IslandKind::BatteryLow:
                 DrawBattery(state, unscaledRect, settings);
                 break;
@@ -14201,8 +14905,7 @@ class Renderer {
     // fake it convincingly and cheaply.
     void DrawSoftShadow(D2D1_RECT_F rect, float radius, const Settings& settings) {
         // The island sits on top of the backdrop, so a shadow here would darken the blur.
-        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {            return;
-        }
+        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {            return;        }
 
         const float spread = Clamp(14.0f * settings.sizeScale, 6.0f, kRenderPadY - 4.0f);
         const float yOffset = spread * 0.35f;
@@ -20874,37 +21577,46 @@ class Renderer {
                                D2D1_DRAW_TEXT_OPTIONS_CLIP);
         }
 
-        const double elapsed = std::max(0.0, now - state.call.startedAt);
-        const int totalSec = static_cast<int>(elapsed);
-        wchar_t timeBuf[32] = {};
-        if (totalSec >= 3600) {
-            swprintf_s(timeBuf, L"%d:%02d:%02d", totalSec / 3600, (totalSec / 60) % 60,
-                       totalSec % 60);
-        } else {
-            swprintf_s(timeBuf, L"%d:%02d", totalSec / 60, totalSec % 60);
-        }
-
         // Status only: server (muted) + channel · elapsed (bold). Click focuses Discord.
-        const std::wstring channel =
-            state.call.channelName.empty() ? L"In a call" : state.call.channelName;
-        const std::wstring subtitle =
-            state.call.guildName.empty()
-                ? (state.call.source == CallDetectSource::Rpc ? L"Discord" : L"Discord Voice")
-                : state.call.guildName;
-        std::wstring primary = channel;
-        primary += L"  ·  ";
-        primary += timeBuf;
-
+        std::wstring subtitle;
+        std::wstring primary;
+        const bool pendingUi = state.call.loading || state.call.calling;
+        if (state.call.loading) {
+            subtitle = L"Discord";
+            primary = Loc(L"Loading...");
+        } else if (state.call.calling) {
+            subtitle = state.call.guildName.empty() ? L"Discord" : state.call.guildName;
+            primary = Loc(L"Calling...");
+        } else {
+            const double elapsed = std::max(0.0, now - state.call.startedAt);
+            const int totalSec = static_cast<int>(elapsed);
+            wchar_t timeBuf[32] = {};
+            if (totalSec >= 3600) {
+                swprintf_s(timeBuf, L"%d:%02d:%02d", totalSec / 3600, (totalSec / 60) % 60,
+                           totalSec % 60);
+            } else {
+                swprintf_s(timeBuf, L"%d:%02d", totalSec / 60, totalSec % 60);
+            }
+            const std::wstring channel =
+                state.call.channelName.empty() ? L"In a call" : state.call.channelName;
+            subtitle = state.call.guildName.empty()
+                           ? (state.call.source == CallDetectSource::Rpc ? L"Discord"
+                                                                        : L"Discord Voice")
+                           : state.call.guildName;
+            primary = channel;
+            primary += L"  ·  ";
+            primary += timeBuf;
+        }
         const float tx = badge.right + 12.0f;
         const float textRight = rect.right - 12.0f;
         if (textRight - tx >= 24.0f) {
-            mutedBrush_->SetOpacity(0.55f);
+            mutedBrush_->SetOpacity(pendingUi ? 0.45f : 0.55f);
             D2D1_RECT_F titleRect = D2D1::RectF(tx, cy - 15.0f, textRight, cy - 1.0f);
             target_->DrawTextW(subtitle.c_str(), static_cast<UINT32>(subtitle.size()),
                                smallTextFormat_.Get(), titleRect, mutedBrush_.Get(),
                                D2D1_DRAW_TEXT_OPTIONS_CLIP);
 
-            textBrush_->SetOpacity(0.95f);
+            textBrush_->SetOpacity(pendingUi ? 0.70f : 0.95f);
             D2D1_RECT_F timeRect = D2D1::RectF(tx, cy - 1.0f, textRight, cy + 15.0f);
             target_->DrawTextW(primary.c_str(), static_cast<UINT32>(primary.size()),
                                textFormat_.Get(), timeRect, textBrush_.Get(),
@@ -22332,7 +23044,6 @@ std::vector<IslandKind> ChooseActivities(const SharedState& state, const Setting
     if (settings.media && state.media.available && !MediaExpandBlocked(state.media)) {
         companion = IslandKind::Media;
     }
-
     std::vector<IslandKind> activities;
     if (transient) {
         activities.push_back(*transient);
@@ -25167,8 +25878,7 @@ DWORD WINAPI RenderThreadProc(void*) {
                 !DwmBackdrop::Available()) {
                 renderSettings.backdropMaterial = BackdropMaterial::None;
             }
-            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,                            widthSpring.value, heightSpring.value, nudgeSpring.value,
-                            hover, pinned, now, combineClosing);
+            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,                            widthSpring.value, heightSpring.value, nudgeSpring.value,                            hover, pinned, now, combineClosing);
         }
 
         // --- Zero-CPU parking for auto-hidden states (idle timeout / fullscreen) ---
