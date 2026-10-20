@@ -14,6 +14,22 @@ A smooth, interactive overlay for your desktop, inspired by Apple's Dynamic Isla
   <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/9fdd6610ff4e48928ecde99362a87f1d43afefbe/previews/Full-preview-v2.png" alt="Dynamic Island surfaces" width="760" style="border-radius: 8px; margin: 10px;"/>
 </p>
 
+### 🎵 Live Lyrics
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/main/previews/lyrics.png" alt="Live Lyrics on Dynamic Island" width="880" style="border-radius: 8px; margin: 10px;"/>
+</p>
+
+### 🪟 Real Blur & Acrylic Backdrop
+
+<p align="center">
+  <video src="https://github.com/devcode90/Dynamic-Island-for-Windows/raw/main/previews/blur.mp4" controls="controls" muted="muted" width="880" style="border-radius: 8px; margin: 10px; max-height: 480px;">
+    <a href="https://github.com/devcode90/Dynamic-Island-for-Windows/raw/main/previews/blur.mp4">
+      <img src="https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/main/previews/blur-acrylic.png" alt="Dynamic Island Real Blur & Acrylic Backdrop" width="880" style="border-radius: 8px; margin: 10px;"/>
+    </a>
+  </video>
+</p>
+
 ### Dashboards
 
 |                                                                          Media Player                                                                           |                                                                            Calendar                                                                             |                                                                              Weather                                                                              |                                                                           Game Overlay                                                                            |                                                                           Idle View                                                                            |
@@ -82,7 +98,7 @@ Tweak the mod easily from the **Windhawk settings panel**:
 - **Style:** Choose the classic iPhone Pill look, macOS Notch, or modern Windows 11 style.
 - **Themes & Colors:** Choose built-in presets (with matching borders), set custom palette colors, or let album art dynamically tint the island. Hex colors accept an alpha channel (`#RRGGBBAA`) for a translucent island with crisp text.
 - **Depth & Material:** Toggle the layered depth shading, the specular glass edge, and the soft drop shadow, and dial the album-art accent bloom from 0 to 200%.
-- **Backdrop Material:** Turn on real Windows blur or frosted acrylic behind the island, then set how much of it shows through. Requires Windows 10 1803 or newer; on older builds the island just stays opaque.
+- **Backdrop Material:** Turn on real Windows blur or frosted acrylic behind the island, then set how much of it shows through. Requires Windows 10 1803 or newer (on older builds the island just stays opaque) and Windows' **Transparency effects** turned on, see the note below.
 - **Language:** Pick from 12 languages, or let the island follow your Windows display language.
 - **Clock & Date:** Choose 12- or 24-hour time, show seconds, promote the date above the time, and set a custom date pattern — CJK forms like `yyyy年MM月dd日` work as typed.
 - **File Tray:** Enable the shelf, then drag files onto the island to park them. Click a row to open it; right-click the island to clear it. Files are only referenced, never copied or moved.
@@ -101,8 +117,18 @@ Tweak the mod easily from the **Windhawk settings panel**:
 - **Notification Permission (for Notifications):** Windows must also allow apps to read your notifications. Turn on **Settings → Privacy & security → Notifications → "Let apps access your notifications"**. If this is off, Windows denies the listener and no notification will reach the island no matter how the mod is configured. When notifications still don't show, check the mod's log in Windhawk for a "permission not granted" line.
 
 > [!NOTE]
-> **Right-click overrides persist** (theme, shape style, pin open, transparency, expand-on-hover) in the mod's local storage across restarts. Changing the matching value in **Mod Settings** clears that override and takes over again.
+> **Blur & Acrylic need Windows' Transparency effects.**
+>
+> Windows does not enable this on every PC by default, and the Blur and Acrylic backdrop will not show without it (you will only see a flat tint instead). Turn it on in **Settings → Personalization → Colors → Transparency effects**. On Windows 11 you can also find it under **Settings → Accessibility → Visual effects → Transparency effects**.
+>
+> Also make sure **Battery saver** is off, because it disables these effects too. Then pick a material under **Mod Settings → Themes → Backdrop material**. The change applies live, no restart needed.
 
+> [!IMPORTANT]
+> **The right-click menu is per-session, not persistent configuration.**
+>
+> **Theme**, **shape style** (Pill / Notch / Windows 11) and **pin open** are re-applied from your Windhawk settings every time the mod restarts, so a reboot, a mod update, or disabling and re-enabling the mod will discard whatever you picked from the menu. Set anything you want to keep in the **Mod Settings** tab instead.
+>
+> Transparency and Expand-on-hover chosen from the menu do survive a restart, but the settings tab remains the reliable place to configure them.
 ---
 
 ## 💬 Let's Chat!
