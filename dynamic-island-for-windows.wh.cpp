@@ -288,7 +288,8 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: 0 to 100. Controls how dark the background tint behind the island is.
   - BackdropMaterial: none
     $name: Backdrop material (real Windows blur)
-    $description: Paints genuine Windows blur or acrylic behind the island so your desktop and windows show through it, using the same effect the system uses for its own surfaces. Acrylic adds Windows' frosted grain and a tint of your background colour (see Acrylic tint strength). Requires Windows 10 1803 or newer, and Windows' Transparency effects must be turned ON (Settings > Personalization > Colors > Transparency effects, or on Windows 11 also Settings > Accessibility > Visual effects). If it is off, or Battery saver is on, you will only see a flat tint with no blur. When this is on, use Backdrop fill opacity below to control how much of the blur comes through.    $options:
+    $description: Paints genuine Windows blur or acrylic behind the island so your desktop and windows show through it, using the same effect the system uses for its own surfaces. Acrylic adds Windows' frosted grain and a tint of your background colour (see Acrylic tint strength). Requires Windows 10 1803 or newer, and Windows' Transparency effects must be turned ON (Settings > Personalization > Colors > Transparency effects, or on Windows 11 also Settings > Accessibility > Visual effects). If it is off, or Battery saver is on, you will only see a flat tint with no blur. When this is on, use Backdrop fill opacity below to control how much of the blur comes through.
+    $options:
       - none: Off (solid background)
       - blur: Blur
       - acrylic: Acrylic (frosted)
@@ -411,7 +412,8 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: Enables a Pomodoro-style focus/break timer, startable from the island's right-click menu.
   - DiscordVoice: true
     $name: Discord Voice module
-    $description: Shows server/channel (or DM/group call) name and elapsed time while Discord is in a voice channel or private call (status only — no mute/deafen). Requires a Discord Developer app + Connect once for channel details; without that, a Discord mic + UDP heuristic still shows a generic call card. Shares the island with Media (trailing) and popups like Clipboard (leading).  - DiscordClientId: ""
+    $description: Shows server/channel (or DM/group call) name and elapsed time while Discord is in a voice channel or private call (status only — no mute/deafen). Requires a Discord Developer app + Connect once for channel details; without that, a Discord mic + UDP heuristic still shows a generic call card. Shares the island with Media (trailing) and popups like Clipboard (leading).
+  - DiscordClientId: ""
     $name: Discord Application Client ID
     $description: From https://discord.com/developers/applications. You must be logged into Discord as the account that owns this app. Under OAuth2 → Redirects, add exactly http://127.0.0.1/callback (needed for the token exchange, not shown in a browser).
   - DiscordClientSecret: ""
@@ -3140,7 +3142,6 @@ void LoadSettings() {
         g_brightnessInitialized = false;
     }
     next.clipboard = Wh_GetIntSetting(L"Modules.Clipboard") != 0;
-    next.statusCountdownProgress = Wh_GetIntSetting(L"Modules.StatusCountdownProgress") != 0;
 
     next.battery = Wh_GetIntSetting(L"Modules.Battery") != 0;
     next.progress = Wh_GetIntSetting(L"Modules.Progress") != 0;
@@ -10426,7 +10427,8 @@ void ApplyDiscordGuildJson(const std::string& dataJson) {
     std::lock_guard lock(g_stateMutex);
     if (g_state.call.source == CallDetectSource::Rpc && g_state.call.active) {
         g_state.call.guildName = std::move(name);
-        g_state.call.loading = false;    }
+        g_state.call.loading = false;
+    }
 }
 
 DWORD WINAPI DiscordRpcThreadProc(void*) {
@@ -11039,7 +11041,8 @@ void UpdateActiveCall() {
             g_state.call.active = true;
             g_state.call.source = CallDetectSource::Heuristic;
             g_state.call.controlsEnabled = false;
-            g_state.call.loading = false;            g_state.call.channelName = L"In a call";
+            g_state.call.loading = false;
+            g_state.call.channelName = L"In a call";
             g_state.call.guildName.clear();
             g_state.call.startedAt = now;
             g_state.call.selfMute = false;
@@ -14865,9 +14868,6 @@ class Renderer {
                 break;
             case IslandKind::Timer:
                 DrawTimer(state, unscaledRect, settings);
-                break;
-            case IslandKind::Call:
-                DrawCall(state, unscaledRect, settings, now);
                 break;
             case IslandKind::Call:
                 DrawCall(state, unscaledRect, settings, now);
