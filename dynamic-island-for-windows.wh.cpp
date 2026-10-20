@@ -644,6 +644,11 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <utility>
 #include <vector>
 #include <set>
+#ifdef DYNAMIC_ISLAND_CROSS_COMPILE
+#define DYNAMIC_ISLAND_SKIP_OPTIONAL_WINRT 1
+#endif
+
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 #include <winrt/base.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
@@ -667,6 +672,10 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <winrt/Windows.Devices.Bluetooth.h>
 #include <winrt/Windows.Devices.Bluetooth.GenericAttributeProfile.h>
 #else
+#define DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER 0
+#endif
+#else  // DYNAMIC_ISLAND_CROSS_COMPILE
+#define DYNAMIC_ISLAND_HAS_USER_NOTIFICATION_LISTENER 0
 #define DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER 0
 #endif
 
@@ -5211,6 +5220,7 @@ PixelsRef FindAppIconByName(const std::wstring& appName, UINT size) {
     return pixels;
 }
 
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 std::vector<uint8_t> ReadWinRtStreamBytes(
     const winrt::Windows::Storage::Streams::IRandomAccessStreamReference& reference) {
     std::vector<uint8_t> bytes;
@@ -5235,6 +5245,7 @@ std::vector<uint8_t> ReadWinRtStreamBytes(
     reader.ReadBytes(winrt::array_view<uint8_t>(bytes.data(), bytes.data() + bytes.size()));
     return bytes;
 }
+#endif  // !DYNAMIC_ISLAND_CROSS_COMPILE
 
 void TriggerNudge() {
     // If we're parked (auto-hidden), any real event must wake us regardless
@@ -5262,6 +5273,7 @@ void TriggerNudge() {
 // while Spotify worked. Prefer the current session when it is actually playing,
 // otherwise the first session that is, and only then fall back to the current
 // one so paused/idle state still shows.
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 winrt::Windows::Media::Control::GlobalSystemMediaTransportControlsSession SelectActiveMediaSession(
     winrt::Windows::Media::Control::GlobalSystemMediaTransportControlsSessionManager const& manager,
     const std::wstring& preferredAumid) {
@@ -5920,6 +5932,16 @@ DWORD WINAPI MediaThreadProc(void*) {
     winrt::uninit_apartment();
     return 0;
 }
+
+#else  // DYNAMIC_ISLAND_CROSS_COMPILE
+
+DWORD WINAPI MediaThreadProc(void*) {
+    while (WaitForSingleObject(g_stopEvent, INFINITE) == WAIT_TIMEOUT) {
+    }
+    return 0;
+}
+
+#endif  // DYNAMIC_ISLAND_CROSS_COMPILE
 
 typedef LONG NTSTATUS;
 typedef NTSTATUS (NTAPI *PWNF_USER_CALLBACK)(
@@ -12786,6 +12808,7 @@ void ToggleEndpointMute() {
 }
 
 // Shared by the scrubber's live drag updates and its on-release commit.
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 void SeekMediaToTicks(int64_t targetTicks) {
     std::thread([targetTicks]() {
         winrt::init_apartment(winrt::apartment_type::multi_threaded);
@@ -12898,6 +12921,13 @@ void SendMediaTransportCommand(int cmd) {
         }
     }).detach();
 }
+
+#else  // DYNAMIC_ISLAND_CROSS_COMPILE
+
+void SeekMediaToTicks(int64_t /*targetTicks*/) {}
+void SendMediaTransportCommand(int /*cmd*/) {}
+
+#endif  // DYNAMIC_ISLAND_CROSS_COMPILE
 
 struct WindowSearch {
     std::wstring targetTitle;
@@ -18074,7 +18104,7 @@ class Renderer {
                 }
 
                 auto FormatTime = [](double seconds) -> std::wstring {
-                    if (seconds <= 0.0 || _isnan(seconds)) return L"0:00";
+                    if (seconds <= 0.0 || std::isnan(seconds)) return L"0:00";
                     int m = static_cast<int>(seconds) / 60;
                     int s = static_cast<int>(seconds) % 60;
                     wchar_t buf[16];
