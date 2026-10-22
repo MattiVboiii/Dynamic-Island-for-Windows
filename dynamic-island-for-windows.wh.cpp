@@ -3831,7 +3831,6 @@ struct CompositionAttribData {
 };
 
 using SetWindowCompositionAttribute_t = BOOL(WINAPI*)(HWND, CompositionAttribData*);
-using SetWindowDisplayAffinity_t = BOOL(WINAPI*)(HWND, DWORD);
 constexpr int kAccentDisabled = 0;
 constexpr int kAccentEnableBlurBehind = 3;
 constexpr int kAccentEnableAcrylicBlurBehind = 4;
@@ -3839,9 +3838,6 @@ constexpr int kWcaAccentPolicy = 19;
 constexpr int kWcaTransitionsForcedisabled = 3;
 constexpr int kMaxPills = 2;  // split / combined layouts still use one silhouette each
 constexpr wchar_t kClassName[] = L"DynamicIslandBackdrop";
-#ifndef WDA_EXCLUDEFROMCAPTURE
-constexpr DWORD WDA_EXCLUDEFROMCAPTURE = 0x00000011;
-#endif
 struct Slot {
     HWND hwnd = nullptr;
     int x = 0, y = 0, w = 0, h = 0;  // last placed rect (screen px)
@@ -3855,11 +3851,27 @@ struct Slot {
 
 Slot g_slots[kMaxPills];
 SetWindowCompositionAttribute_t g_setWca = nullptr;
-SetWindowDisplayAffinity_t g_setAffinity = nullptr;
 bool g_resolved = false;
 bool g_supported = false;  // API present and Windows 10 1803 or newer
 bool g_classRegistered = false;
-bool g_excludeFromCapture = false;  // Win10 2004+
+// Last Sync signature so idle presents that redraw content skip SetWindowPos work.
+struct SyncFingerprint {
+    HWND island = nullptr;
+    POINT origin = {0, 0};
+    int count = 0;
+    int material = -1;
+    DWORD color = 0;
+    int state = -1;
+    bool notch = false;
+    int x[kMaxPills] = {};
+    int y[kMaxPills] = {};
+    int w[kMaxPills] = {};
+    int h[kMaxPills] = {};
+    int radius[kMaxPills] = {};
+    int lift[kMaxPills] = {};
+};
+SyncFingerprint g_lastSync = {};
+
 // Last Sync signature so idle presents that redraw content skip SetWindowPos work.
 struct SyncFingerprint {
     HWND island = nullptr;
@@ -3907,11 +3919,7 @@ void Resolve() {
     g_setWca = user32 ? reinterpret_cast<SetWindowCompositionAttribute_t>(
                             GetProcAddress(user32, "SetWindowCompositionAttribute"))
                       : nullptr;
-    g_setAffinity = user32 ? reinterpret_cast<SetWindowDisplayAffinity_t>(
-                                 GetProcAddress(user32, "SetWindowDisplayAffinity"))
-                           : nullptr;
     g_supported = g_setWca && WindowsBuildAtLeast(17134);  // acrylic: 1803+
-    g_excludeFromCapture = g_setAffinity && WindowsBuildAtLeast(19041);  // 2004+
 }
 
 // False only on Windows too old for the accent; the island then keeps its solid fill.
@@ -3983,17 +3991,14 @@ HWND CreateBackdropWindow(HWND owner) {
     // SetForegroundWindow(island) for the right-click context menu (or Quick Lookup) would
     // bring the backdrop window in front of the island, completely covering the island's
     // content (text, icons, album art) with blur/acrylic. Unowned popups stay behind the island.
+    // DWM composes the accent into screenshots, so do not exclude these from capture.
     DWORD exStyle = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT;
     if (g_settings.alwaysOnTop) exStyle |= WS_EX_TOPMOST;
     HWND hwnd = CreateWindowExW(exStyle, kClassName, L"", WS_POPUP, 0, 0, 16, 16, nullptr, nullptr,
                                 inst, nullptr);
     if (!hwnd) return nullptr;
     DisableTransitions(hwnd);
-    if (g_excludeFromCapture) {
-        // Keeps the backdrop out of screenshots / Game Bar so capture APIs see
-        // the desktop behind it instead of a black or smeared rectangle.
-        g_setAffinity(hwnd, WDA_EXCLUDEFROMCAPTURE);
-    }    return hwnd;
+    return hwnd;
 }
 
 void HideSlot(Slot& s) {
