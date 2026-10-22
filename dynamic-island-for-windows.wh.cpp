@@ -2,11 +2,11 @@
 // @id              dynamic-island-for-windows
 // @name            Dynamic Island for Windows
 // @description     A living, breathing pill overlay inspired by iPhone's Dynamic Island. Reacts to media, downloads, clipboard, battery, and more.
-// @version         1.3.1
+// @version         1.4.0
 // @author          Himanshu
 // @github          https://github.com/devcode90
 // @include         windhawk.exe
-// @compilerOptions -lole32 -loleaut32 -lshcore -ld2d1 -ldwrite -ldwmapi -lgdi32 -luser32 -lshell32 -lruntimeobject -lwindowscodecs -lavrt -lsetupapi -lwinhttp -lpdh -lwinmm
+// @compilerOptions -lole32 -loleaut32 -lshcore -ld2d1 -ldwrite -ldwmapi -lgdi32 -luser32 -lshell32 -lruntimeobject -lwindowscodecs -lsetupapi -lwinhttp -lpdh -lwinmm
 // @license         MIT
 // ==/WindhawkMod==
 
@@ -29,6 +29,8 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 | Module | Description | Preview |
 | :--- | :--- | :--- |
 | **Media Player** | Shows live album art, track details, audio waveforms, and full playback controls. | ![Media](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/media-v2.png) |
+| **Live Lyrics** | Real-time synchronized lyrics with inline collapsed view and full lyrics tab. | ![Live Lyrics](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/main/previews/lyrics.png) |
+| **Blur & Acrylic** | Genuine Windows DWM blur and acrylic backdrop effects for modern depth. | ![Blur & Acrylic](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/main/previews/blur-acrylic.png) |
 | **Calendar** | A monthly grid that always fits its rows, with today marked in the accent colour. | ![Calendar](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/calendar.png) |
 | **Weather** | Real-time weather stats powered by wttr.in, including wind speed, humidity, and "feels like" temperature. | ![Weather](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/weather-v2.png) |
 | **Hardware Monitor** | CPU, RAM, GPU, disk and live network throughput, with load bars that turn amber past 75% and red past 90%. | ![Hardware Monitor](https://raw.githubusercontent.com/devcode90/Dynamic-Island-for-Windows/793cf954d51aa9748c39d544187fab6e25ecd0fb/previews/hardware-monitor.png) |
@@ -46,12 +48,12 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 - **360Hz+ Dynamic Fluid Animations:** Ultra-smooth resizing and splitting with native support for high refresh rate monitors (up to 360Hz/500Hz+) and zero idle CPU drain.
 - **Eight Curated Themes:** Obsidian, Graphite, Slate, Nord, Evergreen, Espresso, Plum and a light Porcelain, all switchable from the right-click menu's Theme submenu — or dial in your exact hex colors.
 - **Clean Flat Material:** Surfaces are built from soft downward depth shading, a drop shadow, and an accent wash tinted live from your album art. No rim lighting, no glass highlights, no outlined cards — nothing traces a bright line along an edge.
-- **Real Blur & Acrylic Backdrop:** Optionally paint genuine Windows blur or frosted acrylic behind the island so your desktop shows through it, exactly like the system's own surfaces.
+- **Real Blur & Acrylic Backdrop:** Optionally paint genuine Windows blur or frosted acrylic behind the island so your desktop shows through it, exactly like the system's own surfaces. Requires Windows' **Transparency effects** to be turned on (see Usage & Settings below).
 - **Translucent Backgrounds:** Hex colors accept an alpha channel (`#RRGGBBAA`), so you can make the island see-through while keeping text and icons perfectly crisp.
 - **Your Language:** The island's own labels follow your Windows display language across 12 languages, or you can pick one explicitly.
 - **File Tray:** Drag any file onto the island to park it on a shelf, then click to open it. You can now drag files back out into any folder or app, and remove them one by one. The island itself only references files, it never copies or moves them.
 - **Lyrics on the Collapsed Island:** Switch on "Show lyrics on collapsed island" from the right-click menu and the pill widens to show the current line as it's sung, sliding in with every new line. When there are no synced lyrics it shows the song title instead.
-- **Quick Lookup:** Press **Ctrl+Alt+Space** to open a search box right on the island. Type a word or phrase, press Enter, and get a definition or a short summary. Your clipboard text and recent searches are one click away.
+- **Quick Lookup:** Once enabled under Modules, press **Ctrl+Alt+Space** to open a search box right on the island. Type a word or phrase, press Enter, and get a definition or a short summary. Your clipboard text and recent searches are one click away.
 - **Lyrics Sync Offset:** Nudge lyric timing in milliseconds when lyrics feel early or late, with a separate value for Bluetooth audio output that is picked automatically from your default audio device. Set it in Mod Settings or from the right-click menu's "Lyrics sync" submenu.
 - **Typography & Clock Control:** Scale all island text independently of the island's size, choose 12- or 24-hour time, show seconds, and set a custom date pattern — including CJK forms like `yyyy年MM月dd日`.
 
@@ -63,11 +65,12 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 - **File Tray:** Enable the File Tray module, then drag files onto the island. It jumps to the shelf to confirm the drop. Click a row to open that file, drag a row out to drop the file into any folder or app, or press the small ✕ on a row to remove just that file. The bin button in the header clears the whole shelf.
 - **Lyrics on the Collapsed Island:** Right-click the island and tick "Show lyrics on collapsed island". This choice is remembered across restarts. Long lines pan across as they are sung.
 - **Cross-Source Media Switching:** If multiple apps are playing media at the same time, you can smoothly swap between their active playback controls directly from the island without opening the apps.
-- **Quick Lookup:** Press the hotkey (default **Ctrl+Alt+Space**, changeable in the **Shortcuts** tab) to open the search box. Type a word or phrase and press Enter. Up/Down picks a row and Esc closes it. With an empty box it suggests your clipboard text and your recent lookups. Results come from Wiktionary and Wikipedia, with dictionaryapi.dev as a backup. Nothing is sent anywhere until you press Enter, and recent lookups are kept in memory only. Turn it off under Modules > "Quick Lookup (hotkey)".
+- **Quick Lookup:** Enable "Quick Lookup (hotkey)" under Modules, then press the hotkey (default **Ctrl+Alt+Space**, changeable in the **Shortcuts** tab) to open the search box. Type a word or phrase and press Enter. Up/Down picks a row and Esc closes it. With an empty box it suggests your clipboard text and your recent lookups. Results come from Wiktionary and Wikipedia, with dictionaryapi.dev as a backup. Nothing is sent anywhere until you press Enter, and recent lookups are kept in memory only.
 - **Right-Click Menu:** Right-click the island to access Theme presets, Transparency settings, collapsed-island lyrics, and to pin the island open.
 - **⚠️ Right-click choices are per-session:** The right-click menu is a quick way to try things out, not a place to configure the mod. **Theme**, **shape style** (Pill / Notch / Windows 11) and **pin open** are all re-applied from your Windhawk settings whenever the mod restarts — so a reboot, a mod update, or toggling the mod off and on will discard them. Anything you want to keep, set in the **Mod Settings** tab instead. (Transparency and Expand-on-hover do persist, but the settings tab is still the reliable place for them.)
 - **Windhawk Settings:** Visit the Mod Settings tab to change the island's Position, Size Scale, Refresh Rate (Target FPS), Animation Style (Smooth/Default/Bouncy/Snappy), Animation Speed, and toggle specific modules. You can also perfectly align the island using the `Offset X` and `Offset Y` settings, and select exactly which monitor the island should appear on (including a "Follow Mouse" mode!).
-- **Notifications:** Windows must allow apps to read notifications: turn on **Settings > Privacy & security > Notifications > "Let apps access your notifications"**. Without that permission Windows denies the listener and the module stays silent. Nothing needs to be added to the process inclusion list; the island runs in its own process and reads notifications from there.
+- **Blur & Acrylic need Transparency effects:** Windows does not enable this by default on every PC, and the Blur and Acrylic backdrop will not show without it (you will only see a flat tint instead). Turn it on in **Settings > Personalization > Colors > Transparency effects** (on Windows 11 you can also find it under **Settings > Accessibility > Visual effects > Transparency effects**). Also make sure **Battery saver** is off, because it disables these effects too. Then pick a material under **Mod Settings > Themes > Backdrop material**; the change applies live, no restart needed.
+- **Notifications:** Windows must allow apps to read notifications: turn on **Settings > Privacy & security > Notifications > "Let apps access your notifications"**. Without that permission Windows denies the listener and the module stays silent. Nothing needs to be added to the process inclusion list; the island runs in its own process and reads notifications from there. Note: notifications from command-line consoles and terminal hosts (PowerShell, cmd.exe, conhost) are filtered out by default to avoid toast spam from terminal scripts and build jobs.
 - **Quick Hide/Show:** Right-click the island and choose "Hide Island" to collapse it completely — CPU usage drops to ~0% while hidden since the mod fully parks its render thread. Bring it back instantly with the configurable hotkey (default **Ctrl+Alt+D**, changeable in the **Shortcuts** settings tab). Because a hidden island can't be right-clicked, the hotkey is the *only* way back once hidden — if you turn the hotkey off while hidden, re-enable it (or disable the mod) from Windhawk's settings.
 
 ---
@@ -77,12 +80,12 @@ The Dynamic Island intelligently expands to display context-aware dashboards. Yo
 **Why it matters:** instant lyrics, less load on the free LRCLIB server, tiny disk footprint, and you can wipe it anytime.
 
 - **Source:** lyrics come from [LRCLIB](https://lrclib.net), a free open-source lyrics database.
-- **Where:** `%LOCALAPPDATA%\DynamicIslandForWindows\lyrics`, one small file per song.
-- **What's inside:** the song title, artist, album, duration and the lyric text. It stays on your own PC only. Nothing is uploaded anywhere.
+- **Where:** inside the mod's storage folder (`lyrics` subfolder), one small file per song.
+- **What's inside:** when fetching lyrics, the title, artist, album, and duration of the track being shown are sent to LRCLIB to look up matching lyrics. The retrieved lyrics and track metadata are then saved locally in the cache on your PC.
 - **Size & expiry:** capped at 25 MB by default (10 / 25 / 100 MB or Off in settings); the least recently used files are deleted first. Only songs that have lyrics are cached (refreshed after 90 days). Songs without lyrics, and failed requests, are never saved, so they are simply looked up again each time they play.
 - **Turn it off:** Mod Settings > Modules > "Lyrics cache (disk)", or set the size limit to Off. Lyrics are then not read from or written to disk at all.
 - **Clear it:** right-click the island > "Clear lyrics cache" (shows how many songs and how much space it uses).
-- **By hand:** you can delete the folder at any time. It is not removed when the mod is uninstalled.
+- **By hand:** you can clear or delete the cache at any time. It is stored in Windhawk's mod storage and is automatically cleaned up if the mod is uninstalled.
 
 ---
 
@@ -282,7 +285,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: 0 to 100. Controls how dark the background tint behind the island is.
   - BackdropMaterial: none
     $name: Backdrop material (real Windows blur)
-    $description: Paints genuine Windows blur or acrylic behind the island so your desktop and windows show through it. Acrylic adds the frosted noise texture Windows uses for its own surfaces. Requires Windows 10 1803 or newer; on unsupported builds the island simply stays opaque. When this is on, use Backdrop fill opacity below to control how much of the blur comes through.
+    $description: Paints genuine Windows blur or acrylic behind the island so your desktop and windows show through it, using the same effect the system uses for its own surfaces. Acrylic adds Windows' frosted grain and a tint of your background colour (see Acrylic tint strength). Requires Windows 10 1803 or newer, and Windows' Transparency effects must be turned ON (Settings > Personalization > Colors > Transparency effects, or on Windows 11 also Settings > Accessibility > Visual effects). If it is off, or Battery saver is on, you will only see a flat tint with no blur. When this is on, use Backdrop fill opacity below to control how much of the blur comes through.
     $options:
       - none: Off (solid background)
       - blur: Blur
@@ -292,7 +295,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: 0 to 100. Only used when a Backdrop material is enabled. How opaque the island's own background stays on top of the blur - lower values let more of the blurred desktop through. Has no effect when the backdrop is Off.
   - BackdropTint: 55
     $name: Acrylic tint strength
-    $description: 0 to 100. Only used by the Acrylic backdrop. How strongly your background colour tints the frosted layer.
+    $description: 0 to 100. How strongly your background colour tints the backdrop. Acrylic uses the full strength; Blur uses a lighter wash of the same colour so the desktop stays readable.
   - MaterialDepth: true
     $name: Depth shading
     $description: Adds soft downward shading and the accent wash so the island has depth instead of looking like one flat fill. No edge highlights or rim lighting are involved. Turn off for a completely flat look.
@@ -433,8 +436,8 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: Display weather temperature and wind speed in imperial units.
   - MediaTabLyrics: false
     $name: Lyrics in the media tab
-    $description: Shows synced lyrics in a side panel next to the album art and playback controls when the island is expanded on the Media tab. The island is only wider while this is on. Can also be toggled from the right-click menu.
-  - Lyrics: true
+    $description: Adds a lyrics button to the media player controls to toggle an immersive lyrics view over the media tab. Can also be toggled from the right-click menu.
+  - Lyrics: false
     $name: Lyrics module
     $description: Shows synced lyrics for the current track (fetched from LRCLIB, a free open-source lyrics database) while the island is expanded. Scroll to the Lyrics tab to view them.
   - LyricsVisualizer: true
@@ -457,7 +460,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: By default the lines above and below the active line are only a faint ghost. Turn this on to make them clearly readable.
   - LyricsCache: true
     $name: Lyrics cache (disk)
-    $description: Instant lyrics, less load on LRCLIB, tiny disk use, clearable anytime. Stored in %LOCALAPPDATA%\DynamicIslandForWindows\lyrics. Turn off to stop all lyrics disk reads and writes.
+    $description: Instant lyrics, less load on LRCLIB, tiny disk use, clearable anytime. Stored in the mod's storage folder. Turn off to stop all lyrics disk reads and writes.
   - LyricsCacheMaxMB: '25'
     $name: Lyrics cache size limit
     $description: Least recently used files are deleted once the cache grows past this. Off disables the disk cache.
@@ -506,7 +509,7 @@ We love community contributions! To ensure high-quality updates, please follow t
       - auto: Auto (Follow Windows)
       - monday: Monday
       - sunday: Sunday
-  - QuickLookup: true
+  - QuickLookup: false
     $name: Quick Lookup (hotkey)
     $description: "Press the Quick Lookup hotkey (Shortcuts tab) to open a search box on the island. Type a word or short phrase and press Enter, or pick your clipboard text or a recent lookup. Nothing is sent anywhere until you submit a search; searches go to en.wiktionary.org and en.wikipedia.org (and api.dictionaryapi.dev as a backup dictionary). Recent lookups are kept in memory only and cleared when the mod restarts."
   - FileTrayModule: false
@@ -517,7 +520,7 @@ We love community contributions! To ensure high-quality updates, please follow t
     $description: 1 to 25. How many files the shelf keeps before the oldest one drops off.
   - FileTrayPersist: true
     $name: File Tray remembers items (disk)
-    $description: Keeps the tray's contents across restarts, in %LOCALAPPDATA%\DynamicIslandForWindows\filetray. Only file paths and pasted text snippets are stored, never copies of your files. Turn off to stop all disk reads and writes and delete the saved list.
+    $description: Keeps the tray's contents across restarts, in the mod's storage folder. Only file paths and pasted text snippets are stored, never copies of your files. Turn off to stop all disk reads and writes and delete the saved list.
   - MediaExpandBlocklist: ""
     $name: Never auto-expand for these apps
     $description: 'Comma-separated list of app or site names that should never make the island expand on a track change, while still updating quietly in the collapsed pill. Matched loosely against the media source and title, for example: chrome, tiktok, youtube.'
@@ -587,6 +590,7 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <shellapi.h>
 #include <ole2.h>
 #include <shlobj.h>
+#include <sddl.h>
 #include <setupapi.h>
 #include <devpropdef.h>
 #include <dbt.h>
@@ -1138,6 +1142,7 @@ struct Settings {
     bool separateExpandedOffsetY = false;  // #83
     int offsetYExpanded = 0;               // #83
     float sizeScale = 1.0f;
+    float baseSizeScale = 1.0f;
     std::wstring fontFamily;
     AccentMode accentMode = AccentMode::Auto;
     D2D1_COLOR_F customAccent = D2D1::ColorF(0x4cc9f0);
@@ -1176,7 +1181,7 @@ struct Settings {
     UINT hideShowVk = 'D';
 
     // Quick Lookup: hotkey-triggered dictionary / Wikipedia card.
-    bool quickLookup = true;
+    bool quickLookup = false;
     UINT lookupModifiers = MOD_CONTROL | MOD_ALT | MOD_NOREPEAT;
     UINT lookupVk = VK_SPACE;
     bool bluetoothIndicator = true;
@@ -1190,7 +1195,7 @@ struct Settings {
     bool weather = true;
     std::wstring weatherCity;
     bool weatherFahrenheit = false;
-    bool lyrics = true;
+    bool lyrics = false;
     bool lyricsVisualizer = true;
     bool karaokeLyrics = true;
     bool karaokeLetterGlow = true;
@@ -1748,12 +1753,17 @@ bool g_brightnessInitialized = false;
 int g_lastBrightness = -1;
 BYTE g_brightnessPowerSource = 255;  // ACLineStatus of the previous sample
 std::atomic<double> g_lastNudgeTime = 0.0;
+std::atomic<double> g_lastLyricsViewTime = 0.0;
 
 std::mutex g_bluetoothBatteryCacheMutex;
 std::unordered_map<std::wstring, int> g_bluetoothBatteryCache;  // Bluetooth device Id -> last known battery percent (-1 = never learned)
 std::atomic<uint64_t> g_bluetoothConnectGeneration = 0;
 std::atomic<bool> g_isDnDActive = false;
 void* g_wnfDndSubscription = nullptr;
+
+std::atomic<bool> g_gameOverlayPinned{false};
+std::atomic<bool> g_pinnedExpanded{false};
+std::atomic<int> g_pillOpacityOverride{-1};
 
 constexpr GUID kSubTypeIeeeFloat = {
     0x00000003,
@@ -2781,19 +2791,60 @@ bool IsForegroundFullscreen(HWND targetHwnd) {
     return false;
 }
 
-// Returns the DPI scale factor for the primary monitor (1.0 = 96 DPI = 100%)
-float GetPrimaryMonitorDpiScale() {
-    POINT pt = {0, 0};
-    HMONITOR monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+struct MonitorEnumData {
+    std::vector<HMONITOR> monitors;
+};
+
+inline BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData) {
+    auto* data = reinterpret_cast<MonitorEnumData*>(dwData);
+    data->monitors.push_back(hMonitor);
+    return TRUE;
+}
+
+inline HMONITOR GetAnchorMonitorFor(int targetMonitor) {
+    HMONITOR selectedMonitor = nullptr;
+
+    if (targetMonitor == -1) {
+        POINT pt = {0, 0};
+        GetCursorPos(&pt);
+        selectedMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
+    } else if (targetMonitor > 0) {
+        MonitorEnumData data;
+        EnumDisplayMonitors(nullptr, nullptr, MonitorEnumProc, reinterpret_cast<LPARAM>(&data));
+
+        int index = targetMonitor - 1;
+        if (index >= 0 && index < static_cast<int>(data.monitors.size())) {
+            selectedMonitor = data.monitors[index];
+        }
+    }
+
+    if (!selectedMonitor) {
+        POINT pt = {0, 0};
+        selectedMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+    }
+    return selectedMonitor;
+}
+
+inline HMONITOR GetAnchorMonitor() {
+    return GetAnchorMonitorFor(g_settings.targetMonitor);
+}
+
+// Returns the DPI scale factor for a given monitor (1.0 = 96 DPI = 100%)
+inline float GetMonitorDpiScale(HMONITOR monitor) {
+    if (!monitor) {
+        POINT pt = {0, 0};
+        monitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
+    }
     UINT dpiX = 96, dpiY = 96;
     using GetDpiForMonitor_t = HRESULT(WINAPI*)(HMONITOR, int, UINT*, UINT*);
     static auto pGetDpiForMonitor = reinterpret_cast<GetDpiForMonitor_t>(
         GetProcAddress(GetModuleHandleW(L"shcore.dll"), "GetDpiForMonitor"));
-    if (pGetDpiForMonitor) {
+    if (pGetDpiForMonitor && monitor) {
         pGetDpiForMonitor(monitor, 0 /* MDT_EFFECTIVE_DPI */, &dpiX, &dpiY);
     }
     return static_cast<float>(dpiX) / 96.0f;
 }
+
 
 int GetMonitorRefreshRate(HWND hwnd) {
     HMONITOR monitor = nullptr;
@@ -2840,7 +2891,6 @@ D2D1_COLOR_F GetSystemAccentColor() {
 
 void ApplyHideShowHotkey();                 // forward declaration; defined after LoadSettings()
 void ApplyBackdropMaterial(HWND);           // forward declaration; defined after LoadSettings()
-void ApplyBackdropRegion(HWND, int, int);   // forward declaration; defined below ApplyOverlayZOrder
 void NotifyKeyboardThreadSettingChanged();  // forward declaration; defined with the keyboard hook
 
 void ApplyLookupHotkey();  // forward declaration; defined with Quick Lookup
@@ -2869,12 +2919,19 @@ void LoadSettings() {
             next.sizeScale = parsedScale;
         }
     }
+    next.baseSizeScale = next.sizeScale;
 
-    // Auto DPI scaling: multiply sizeScale by monitor DPI factor.
-    // On a 4K 200% display this doubles the island to the right physical size.
-    if (Wh_GetIntSetting(L"Appearance.AutoDpiScale") != 0) {
-        next.sizeScale *= GetPrimaryMonitorDpiScale();
-    }
+    std::wstring mon = GetStringSettingCopy(L"Appearance.TargetMonitor");
+    if (mon == L"primary") next.targetMonitor = 0;
+    else if (mon == L"follow") next.targetMonitor = -1;
+    else next.targetMonitor = _wtoi(mon.c_str());
+
+    // Auto DPI scaling: multiply sizeScale by monitor DPI factor for the target display.
+    // On mixed-DPI setups or a 4K 200% display this scales the island to the right physical size.
+    next.autoDpiScale = (Wh_GetIntSetting(L"Appearance.AutoDpiScale") != 0);
+    HMONITOR anchorMon = GetAnchorMonitorFor(next.targetMonitor);
+    const float dpi = next.autoDpiScale ? GetMonitorDpiScale(anchorMon) : 1.0f;
+    next.sizeScale = next.baseSizeScale * dpi;
 
     std::wstring fontSetting = GetStringSettingWithFallback(L"Themes.FontFamily", L"Appearance.FontFamily");
     size_t firstChar = fontSetting.find_first_not_of(L" \t\r\n\"'");
@@ -3141,6 +3198,9 @@ void LoadSettings() {
     next.tintOpacity = Clamp(Wh_GetIntSetting(L"Themes.TintIntensity") / 100.0f, 0.0f, 1.0f);
     const int settingOpacity = Wh_GetIntSetting(L"Themes.PillOpacity");
     const int localOpacity = Wh_GetIntValue(L"PillOpacityOverride", -1);
+    g_pillOpacityOverride.store(localOpacity);
+    g_gameOverlayPinned.store(Wh_GetIntValue(L"GameOverlayPinned", 0) != 0);
+    g_pinnedExpanded.store(Wh_GetIntValue(L"PinnedExpanded", 0) != 0);
     next.pillOpacity = Clamp((localOpacity >= 0 ? localOpacity : settingOpacity) / 100.0f,
                              0.35f, 1.0f);
     next.gameOverlay = Wh_GetIntSetting(L"Modules.GameOverlay") != 0;
@@ -3203,10 +3263,6 @@ void LoadSettings() {
     next.separateExpandedOffsetY = Wh_GetIntSetting(L"Appearance.SeparateExpandedOffsetY") != 0;
     next.offsetYExpanded = Wh_GetIntSetting(L"Appearance.OffsetYExpanded");
 
-    std::wstring mon = GetStringSettingCopy(L"Appearance.TargetMonitor");
-    if (mon == L"primary") next.targetMonitor = 0;
-    else if (mon == L"follow") next.targetMonitor = -1;
-    else next.targetMonitor = _wtoi(mon.c_str());
 
     std::wstring shapeStr = GetStringSettingCopy(L"Appearance.ShapeStyle");
     static std::wstring s_lastConfiguredShape = L"";
@@ -3401,6 +3457,7 @@ void LoadSettings() {
     next.micDotColor = next.privacyDotsMicHex;
     next.camDotColor = next.privacyDotsCamHex;
 
+    g_pinnedExpanded.store(false);
     Wh_SetIntValue(L"PinnedExpanded", 0);
 
     // Compare-then-publish under one lock so the change flags describe exactly
@@ -3425,7 +3482,9 @@ void LoadSettings() {
             next.lookupVk != g_settings.lookupVk;
         backdropChanged =
             next.backdropMaterial != g_settings.backdropMaterial ||
-            std::fabs(next.backdropTint - g_settings.backdropTint) > 0.001f;
+            std::fabs(next.backdropTint - g_settings.backdropTint) > 0.001f ||
+            std::fabs(next.backdropFillAlpha - g_settings.backdropFillAlpha) > 0.001f ||
+            next.alwaysOnTop != g_settings.alwaysOnTop;
         g_settings = std::move(next);
     }
     g_layoutDirty = true;
@@ -3467,102 +3526,439 @@ void EnableBlurBehind(HWND hwnd) {
 }
 
 // ── Backdrop material (#59) ──────────────────────────────────────────────────
-// Real Windows blur/acrylic behind the island.
-//
-// This uses SetWindowCompositionAttribute, which is the same undocumented entry
-// point Windows' own shell surfaces use for acrylic. It is resolved dynamically
-// so the mod still loads cleanly on builds where it is absent, and every failure
-// path simply leaves the island fully opaque rather than breaking rendering.
-//
-// It composes with UpdateLayeredWindow: DWM blurs whatever is behind the window,
-// and the per-pixel alpha we paint decides how much of that blur shows through.
-// That is why enabling a backdrop also caps the pill's own fill alpha further
-// down -- an opaque fill would hide the very effect being switched on.
+// The blur / acrylic is composed by DWM (see DwmBackdrop); this namespace only holds
+// the screen-clip helpers the island yields to.
 namespace Backdrop {
 
-enum CompositionAttribute : int {
-    WCA_ACCENT_POLICY = 19,
-};
+// True while the foreground window belongs to the Snipping Tool / screen clip UI.
+bool ScreenClipUiActive() {
+    HWND fg = GetForegroundWindow();
+    if (!fg) return false;
+    DWORD pid = 0;
+    GetWindowThreadProcessId(fg, &pid);
+    if (!pid) return false;
+    HANDLE h = OpenProcess(PROCESS_QUERY_LIMITED_INFORMATION, FALSE, pid);
+    if (!h) return false;
+    wchar_t path[MAX_PATH] = {};
+    DWORD n = MAX_PATH;
+    bool hit = false;
+    if (QueryFullProcessImageNameW(h, 0, path, &n)) {
+        const wchar_t* name = wcsrchr(path, L'\\');
+        name = name ? name + 1 : path;
+        hit = _wcsicmp(name, L"SnippingTool.exe") == 0 ||
+              _wcsicmp(name, L"ScreenClippingHost.exe") == 0;
+    }
+    CloseHandle(h);
+    return hit;
+}
 
-enum AccentState : int {
-    ACCENT_DISABLED = 0,
-    ACCENT_ENABLE_BLURBEHIND = 3,
-    ACCENT_ENABLE_ACRYLICBLURBEHIND = 4,
-};
-
-struct AccentPolicy {
-    AccentState state;
-    DWORD flags;
-    DWORD gradientColor;  // ABGR
-    DWORD animationId;
-};
-
-struct CompositionAttributeData {
-    CompositionAttribute attribute;
-    void* data;
-    SIZE_T dataSize;
-};
-
-using SetWindowCompositionAttributeFn = BOOL(WINAPI*)(HWND, CompositionAttributeData*);
-
-SetWindowCompositionAttributeFn Resolve() {
-    static SetWindowCompositionAttributeFn cached = [] {
-        // user32 is already loaded in-process; GetModuleHandle avoids taking a
-        // reference we would then have to release.
-        HMODULE user32 = GetModuleHandleW(L"user32.dll");
-        if (!user32) {
-            return static_cast<SetWindowCompositionAttributeFn>(nullptr);
-        }
-        return reinterpret_cast<SetWindowCompositionAttributeFn>(
-            GetProcAddress(user32, "SetWindowCompositionAttribute"));
-    }();
-    return cached;
+// While the Snipping Tool overlay is foreground the island must not raise or
+// show itself. Cached for 100 ms since this is checked every frame.
+bool ClipUiActiveCached() {
+    static std::atomic<ULONGLONG> lastCheck{0};
+    static std::atomic<bool> last{false};
+    const ULONGLONG now = GetTickCount64();
+    if (now - lastCheck.load() >= 100) {
+        last.store(ScreenClipUiActive());
+        lastCheck.store(now);
+    }
+    return last.load();
 }
 
 }  // namespace Backdrop
 
-void ApplyBackdropMaterial(HWND hwnd) {
-    if (!hwnd) {
+// ── DWM backdrop (#59) ───────────────────────────────────────────────────────
+// Real Windows blur / acrylic, composed by DWM on the GPU: the island never blurs
+// the desktop itself. The accent only applies to a non-layered window, so each pill
+// gets a mouse-transparent window just below the layered island, clipped to the
+// pill's rounded region with accent flag 0x10 so it does not spill past the corners.
+namespace DwmBackdrop {
+
+struct AccentPolicy {
+    int accentState;
+    int accentFlags;
+    DWORD gradientColor;  // ABGR: alpha = tint opacity
+    DWORD animationId;
+};
+
+struct CompositionAttribData {
+    int attrib;
+    PVOID data;
+    SIZE_T size;
+};
+
+using SetWindowCompositionAttribute_t = BOOL(WINAPI*)(HWND, CompositionAttribData*);
+
+constexpr int kAccentDisabled = 0;
+constexpr int kAccentEnableBlurBehind = 3;
+constexpr int kAccentEnableAcrylicBlurBehind = 4;
+constexpr int kWcaAccentPolicy = 19;
+constexpr int kWcaTransitionsForcedisabled = 3;
+constexpr int kMaxPills = 2;  // split / combined layouts still use one silhouette each
+constexpr wchar_t kClassName[] = L"DynamicIslandBackdrop";
+
+struct Slot {
+    HWND hwnd = nullptr;
+    int x = 0, y = 0, w = 0, h = 0;  // last placed rect (screen px)
+    int radius = -1;                 // last region corner radius
+    int lift = -1;                   // last region top lift (notch: flat top)
+    bool visible = false;
+    bool topMost = false;
+    int accentState = -1;
+    DWORD accentColor = 0;
+};
+
+Slot g_slots[kMaxPills];
+SetWindowCompositionAttribute_t g_setWca = nullptr;
+bool g_resolved = false;
+bool g_supported = false;  // API present and Windows 10 1803 or newer
+bool g_classRegistered = false;
+
+// Last Sync signature so idle presents that redraw content skip SetWindowPos work.
+struct SyncFingerprint {
+    HWND island = nullptr;
+    POINT origin = {0, 0};
+    int count = 0;
+    int material = -1;
+    DWORD color = 0;
+    int state = -1;
+    bool notch = false;
+    int x[kMaxPills] = {};
+    int y[kMaxPills] = {};
+    int w[kMaxPills] = {};
+    int h[kMaxPills] = {};
+    int radius[kMaxPills] = {};
+    int lift[kMaxPills] = {};
+};
+SyncFingerprint g_lastSync = {};
+
+bool WindowsBuildAtLeast(DWORD build) {
+    using RtlGetVersion_t = LONG(WINAPI*)(OSVERSIONINFOW*);
+    HMODULE nt = GetModuleHandleW(L"ntdll.dll");
+    auto fn = nt ? reinterpret_cast<RtlGetVersion_t>(GetProcAddress(nt, "RtlGetVersion")) : nullptr;
+    if (!fn) return false;
+    OSVERSIONINFOW vi = {};
+    vi.dwOSVersionInfoSize = sizeof(vi);
+    return fn(&vi) == 0 && vi.dwBuildNumber >= build;
+}
+
+LRESULT CALLBACK WndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    switch (msg) {
+        case WM_MOUSEACTIVATE:
+            return MA_NOACTIVATE;
+        case WM_NCHITTEST:
+            return HTTRANSPARENT;  // belt-and-braces with WS_EX_TRANSPARENT
+        case WM_ERASEBKGND:
+            return 1;  // accent owns the pixels; avoid GDI flash on show/resize
+    }
+    return DefWindowProcW(hwnd, msg, wParam, lParam);
+}
+
+void Resolve() {
+    if (g_resolved) return;
+    g_resolved = true;
+    HMODULE user32 = GetModuleHandleW(L"user32.dll");
+    g_setWca = user32 ? reinterpret_cast<SetWindowCompositionAttribute_t>(
+                            GetProcAddress(user32, "SetWindowCompositionAttribute"))
+                      : nullptr;
+    g_supported = g_setWca && WindowsBuildAtLeast(17134);  // acrylic: 1803+
+}
+
+// False only on Windows too old for the accent; the island then keeps its solid fill.
+bool Available() {
+    Resolve();
+    return g_supported;
+}
+
+DWORD ColorToAccentAbgr(const D2D1_COLOR_F& tint, float tintAlpha) {
+    auto to8 = [](float v) {
+        return static_cast<DWORD>(std::clamp(static_cast<int>(std::lround(v * 255.0f)), 0, 255));
+    };
+    DWORD alpha = to8(tintAlpha);
+    if (alpha == 0) alpha = 1;  // acrylic rejects a fully transparent tint
+    return (alpha << 24) | (to8(tint.b) << 16) | (to8(tint.g) << 8) | to8(tint.r);
+}
+
+void DisableTransitions(HWND hwnd) {
+    BOOL disable = TRUE;
+    CompositionAttribData data = {kWcaTransitionsForcedisabled, &disable, sizeof(disable)};
+    g_setWca(hwnd, &data);
+}
+
+void ApplyAccent(Slot& s, int state, DWORD color) {
+    if (!s.hwnd || !g_setWca) return;
+    if (s.accentState == state && s.accentColor == color) return;
+    AccentPolicy policy = {};
+    policy.accentState = state;
+    policy.accentFlags = 0x10;  // clip the accent to the window region
+    policy.gradientColor = color;
+    CompositionAttribData data = {kWcaAccentPolicy, &policy, sizeof(policy)};
+    g_setWca(s.hwnd, &data);
+    s.accentState = state;
+    s.accentColor = color;
+}
+
+void ClearAccent(Slot& s) {
+    if (!s.hwnd || !g_setWca) {
+        s.accentState = -1;
+        s.accentColor = 0;
+        return;
+    }
+    if (s.accentState == kAccentDisabled) return;
+    AccentPolicy policy = {};
+    policy.accentState = kAccentDisabled;
+    CompositionAttribData data = {kWcaAccentPolicy, &policy, sizeof(policy)};
+    g_setWca(s.hwnd, &data);
+    s.accentState = kAccentDisabled;
+    s.accentColor = 0;
+}
+
+HWND CreateBackdropWindow(HWND owner) {
+    HINSTANCE inst = GetModuleHandleW(nullptr);
+    if (!g_classRegistered) {
+        WNDCLASSEXW wc = {};
+        wc.cbSize = sizeof(wc);
+        wc.lpfnWndProc = WndProc;
+        wc.hInstance = inst;
+        wc.hbrBackground = static_cast<HBRUSH>(GetStockObject(BLACK_BRUSH));  // black = clear for accent
+        wc.lpszClassName = kClassName;
+        if (!RegisterClassExW(&wc) && GetLastError() != ERROR_CLASS_ALREADY_EXISTS) {
+            return nullptr;
+        }
+        g_classRegistered = true;
+    }
+    // No WS_EX_LAYERED (it would kill the accent); WS_EX_TRANSPARENT passes the mouse.
+    // Unowned (hWndParent = nullptr): In Win32, an owned popup window is strictly forced
+    // above its owner in the z-order upon owner activation. If owned by the island, calling
+    // SetForegroundWindow(island) for the right-click context menu (or Quick Lookup) would
+    // bring the backdrop window in front of the island, completely covering the island's
+    // content (text, icons, album art) with blur/acrylic. Unowned popups stay behind the island.
+    DWORD exStyle = WS_EX_TOOLWINDOW | WS_EX_NOACTIVATE | WS_EX_TRANSPARENT;
+    if (g_settings.alwaysOnTop) exStyle |= WS_EX_TOPMOST;
+    HWND hwnd = CreateWindowExW(exStyle, kClassName, L"", WS_POPUP, 0, 0, 16, 16, nullptr, nullptr,
+                                inst, nullptr);
+    if (!hwnd) return nullptr;
+    DisableTransitions(hwnd);
+    return hwnd;
+}
+
+void HideSlot(Slot& s) {
+    if (s.hwnd && s.visible) {
+        ClearAccent(s);  // drop GPU blur work while hidden
+        ShowWindow(s.hwnd, SW_HIDE);
+    }
+    s.visible = false;
+    // Force a fresh accent apply on the next show — DWM can drop it while hidden.
+    s.accentState = -1;
+}
+
+void HideAll() {
+    for (Slot& s : g_slots) HideSlot(s);
+    g_lastSync = {};
+}
+
+void DestroyAll() {
+    for (Slot& s : g_slots) {
+        if (s.hwnd && IsWindow(s.hwnd)) {
+            DestroyWindow(s.hwnd);
+        }
+        s = Slot{};
+    }
+    g_lastSync = {};
+    if (g_classRegistered) {
+        UnregisterClassW(kClassName, GetModuleHandleW(nullptr));
+        g_classRegistered = false;
+    }
+}
+
+// Clips the window to the pill; `lift` raises the top so a notch pill gets a flat top.
+void UpdateRegion(Slot& s, int w, int h, int radius, int lift) {
+    if (s.radius == radius && s.lift == lift && s.w == w && s.h == h) return;
+    const int diameter = radius * 2;
+    HRGN region = CreateRoundRectRgn(0, -lift, w + 1, h + 1, diameter, diameter);
+    if (region && SetWindowRgn(s.hwnd, region, FALSE) == 0) {
+        DeleteObject(region);  // the system owns it only when SetWindowRgn succeeds
+    }
+    s.radius = radius;
+    s.lift = lift;
+}
+
+void EnsureTopMost(Slot& s, bool wantTopMost) {
+    if (!s.hwnd || s.topMost == wantTopMost) return;
+    // Style-bit edits alone do not move a window between the topmost bands;
+    // SetWindowPos with HWND_TOPMOST / HWND_NOTOPMOST is required.
+    SetWindowPos(s.hwnd, wantTopMost ? HWND_TOPMOST : HWND_NOTOPMOST, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+    s.topMost = wantTopMost;
+}
+
+// Keeps all active backdrop windows placed immediately behind the island window in the z-order.
+// Called around context menu popups and foreground activation so the blur never covers the island.
+void EnsureBehind(HWND island) {
+    if (!island) return;
+    HWND prev = island;
+    for (Slot& s : g_slots) {
+        if (s.hwnd && s.visible) {
+            SetWindowPos(s.hwnd, prev, 0, 0, 0, 0,
+                         SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+            prev = s.hwnd;
+        }
+    }
+}
+
+// Places one backdrop window below `prev`. Only moves it when something changed:
+// per-frame SetWindowPos lags on some Windows 10 builds.
+void PlaceSlot(Slot& s, HWND prev, int x, int y, int w, int h, int radius, int lift,
+               bool wantTopMost) {
+    EnsureTopMost(s, wantTopMost);
+    UpdateRegion(s, w, h, radius, lift);
+    const bool moved = x != s.x || y != s.y || w != s.w || h != s.h;
+    const bool stacked = GetWindow(prev, GW_HWNDNEXT) == s.hwnd;
+    if (moved || !stacked || !s.visible) {
+        UINT flags = SWP_NOACTIVATE | SWP_NOOWNERZORDER;
+        if (stacked) flags |= SWP_NOZORDER;
+        if (!s.visible) flags |= SWP_SHOWWINDOW;
+        SetWindowPos(s.hwnd, prev, x, y, w, h, flags);
+    }
+    s.x = x;
+    s.y = y;
+    s.w = w;
+    s.h = h;
+    s.visible = true;
+}
+
+// Called after every presented frame with the island's screen origin and its pills
+// (client px, including hover scale) with corner radii.
+void Sync(HWND island, POINT origin, const D2D1_RECT_F* rects, const float* radii, int count,
+          bool notch, BackdropMaterial material, const D2D1_COLOR_F& tint, float tintAlpha) {
+    if (material == BackdropMaterial::None || count <= 0 || !island || !IsWindowVisible(island) ||
+        !Available() || Backdrop::ClipUiActiveCached()) {
+        HideAll();
+        return;
+    }
+    count = std::min(count, kMaxPills);
+
+    int state = kAccentEnableBlurBehind;
+    DWORD color = ColorToAccentAbgr(tint, tintAlpha * 0.22f);  // soft wash so plain blur isn't harsh
+    if (material == BackdropMaterial::Acrylic) {
+        state = kAccentEnableAcrylicBlurBehind;
+        color = ColorToAccentAbgr(tint, tintAlpha);
+    }
+
+    // Precompute geometry once so we can early-out when nothing moved.
+    struct Geom {
+        int x, y, w, h, radius, lift;
+        bool valid;
+    } geom[kMaxPills] = {};
+    for (int i = 0; i < count; ++i) {
+        const D2D1_RECT_F& r = rects[i];
+        // Inset 1px so the region's hard edge stays hidden behind the island contour.
+        constexpr int inset = 1;
+        const int x = static_cast<int>(std::lround(origin.x + r.left)) + inset;
+        const int y = static_cast<int>(std::lround(origin.y + r.top)) + (notch ? 0 : inset);
+        const int right = static_cast<int>(std::lround(origin.x + r.right)) - inset;
+        const int bottom = static_cast<int>(std::lround(origin.y + r.bottom)) - inset;
+        const int w = right - x;
+        const int h = bottom - y;
+        if (w < 4 || h < 4) {
+            geom[i].valid = false;
+            continue;
+        }
+        int radius = static_cast<int>(std::lround(radii[i])) - inset;
+        radius = std::clamp(radius, 0, std::min(w, h) / 2);
+        geom[i] = {x, y, w, h, radius, notch ? radius : 0, true};
+    }
+
+    const bool wantTopMost = g_settings.alwaysOnTop;
+    bool unchanged = g_lastSync.island == island && g_lastSync.origin.x == origin.x &&
+                     g_lastSync.origin.y == origin.y && g_lastSync.count == count &&
+                     g_lastSync.material == static_cast<int>(material) &&
+                     g_lastSync.color == color && g_lastSync.state == state &&
+                     g_lastSync.notch == notch;
+    if (unchanged && count > 0 && g_slots[0].hwnd && g_slots[0].visible) {
+        // If another always-on-top window slipped between the island and its backdrop, restack.
+        if (GetWindow(island, GW_HWNDNEXT) != g_slots[0].hwnd) {
+            unchanged = false;
+        }
+    }
+    if (unchanged) {
+        for (int i = 0; i < count; ++i) {
+            if (!geom[i].valid) {
+                if (g_slots[i].visible) {
+                    unchanged = false;
+                    break;
+                }
+                continue;
+            }
+            if (g_lastSync.x[i] != geom[i].x || g_lastSync.y[i] != geom[i].y ||
+                g_lastSync.w[i] != geom[i].w || g_lastSync.h[i] != geom[i].h ||
+                g_lastSync.radius[i] != geom[i].radius || g_lastSync.lift[i] != geom[i].lift ||
+                !g_slots[i].visible || g_slots[i].topMost != wantTopMost) {
+                unchanged = false;
+                break;
+            }
+        }
+    }
+    if (unchanged) {
+        // Accent can still need a refresh after a settings tick that didn't move geometry.
+        for (int i = 0; i < count; ++i) {
+            if (geom[i].valid && g_slots[i].hwnd) {
+                ApplyAccent(g_slots[i], state, color);
+            }
+        }
         return;
     }
 
-    const auto setAttribute = Backdrop::Resolve();
-    if (!setAttribute) {
-        return;  // Unsupported build; island stays opaque.
+    HWND prev = island;
+    for (int i = 0; i < count; ++i) {
+        Slot& s = g_slots[i];
+        if (!geom[i].valid) {
+            HideSlot(s);
+            continue;
+        }
+        if (!s.hwnd) {
+            s.hwnd = CreateBackdropWindow(island);
+            s.topMost = wantTopMost;
+            if (!s.hwnd) continue;
+        }
+        ApplyAccent(s, state, color);
+        PlaceSlot(s, prev, geom[i].x, geom[i].y, geom[i].w, geom[i].h, geom[i].radius,
+                  geom[i].lift, wantTopMost);
+        prev = s.hwnd;
     }
+    for (int i = count; i < kMaxPills; ++i) HideSlot(g_slots[i]);
 
-    Backdrop::AccentPolicy policy = {};
-    switch (g_settings.backdropMaterial) {
-        case BackdropMaterial::Blur:
-            policy.state = Backdrop::ACCENT_ENABLE_BLURBEHIND;
-            break;
-        case BackdropMaterial::Acrylic:
-            policy.state = Backdrop::ACCENT_ENABLE_ACRYLICBLURBEHIND;
-            break;
-        case BackdropMaterial::None:
-        default:
-            policy.state = Backdrop::ACCENT_DISABLED;
-            break;
+    g_lastSync.island = island;
+    g_lastSync.origin = origin;
+    g_lastSync.count = count;
+    g_lastSync.material = static_cast<int>(material);
+    g_lastSync.color = color;
+    g_lastSync.state = state;
+    g_lastSync.notch = notch;
+    for (int i = 0; i < kMaxPills; ++i) {
+        if (i < count && geom[i].valid) {
+            g_lastSync.x[i] = geom[i].x;
+            g_lastSync.y[i] = geom[i].y;
+            g_lastSync.w[i] = geom[i].w;
+            g_lastSync.h[i] = geom[i].h;
+            g_lastSync.radius[i] = geom[i].radius;
+            g_lastSync.lift[i] = geom[i].lift;
+        } else {
+            g_lastSync.x[i] = g_lastSync.y[i] = g_lastSync.w[i] = g_lastSync.h[i] = 0;
+            g_lastSync.radius[i] = g_lastSync.lift[i] = 0;
+        }
     }
+}
 
-    // Acrylic needs a tint supplied in the policy itself; the shell mixes this
-    // over the blurred backdrop. Stored ABGR, and the alpha here is the tint
-    // strength rather than the window's opacity.
-    if (policy.state == Backdrop::ACCENT_ENABLE_ACRYLICBLURBEHIND) {
-        const D2D1_COLOR_F tint = g_settings.pillBgColor;
-        const auto channel = [](float v) {
-            return static_cast<DWORD>(Clamp(v, 0.0f, 1.0f) * 255.0f);
-        };
-        const DWORD tintAlpha = channel(g_settings.backdropTint);
-        policy.gradientColor = (tintAlpha << 24) | (channel(tint.b) << 16) |
-                               (channel(tint.g) << 8) | channel(tint.r);
+}  // namespace DwmBackdrop
+
+// The backdrop picks up a material or tint change on the next frame; turning it
+// off hides the DWM windows immediately so the blur does not linger a frame.
+void ApplyBackdropMaterial(HWND) {
+    if (g_settings.backdropMaterial == BackdropMaterial::None) {
+        DwmBackdrop::HideAll();
     }
-
-    Backdrop::CompositionAttributeData data = {};
-    data.attribute = Backdrop::WCA_ACCENT_POLICY;
-    data.data = &policy;
-    data.dataSize = sizeof(policy);
-    setAttribute(hwnd, &data);
+    g_layoutDirty = true;
 }
 
 // Always unregisters before registering so a settings change never leaks the
@@ -3594,38 +3990,11 @@ void ApplyHideShowHotkey() {
 
 
 
-struct MonitorEnumData {
-    std::vector<HMONITOR> monitors;
-};
-
-BOOL CALLBACK MonitorEnumProc(HMONITOR hMonitor, HDC, LPRECT, LPARAM dwData) {
-    auto* data = reinterpret_cast<MonitorEnumData*>(dwData);
-    data->monitors.push_back(hMonitor);
-    return TRUE;
-}
-
-RECT GetAnchorWorkRect() {
-    HMONITOR selectedMonitor = nullptr;
-
-    if (g_settings.targetMonitor == -1) {
-        POINT pt = {0, 0};
-        GetCursorPos(&pt);
-        selectedMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-    } else if (g_settings.targetMonitor > 0) {
-        MonitorEnumData data;
-        EnumDisplayMonitors(nullptr, nullptr, MonitorEnumProc, reinterpret_cast<LPARAM>(&data));
-
-        int index = g_settings.targetMonitor - 1;
-        if (index >= 0 && index < static_cast<int>(data.monitors.size())) {
-            selectedMonitor = data.monitors[index];
-        }
+RECT GetAnchorWorkRect(HMONITOR* outMonitor = nullptr) {
+    HMONITOR selectedMonitor = GetAnchorMonitor();
+    if (outMonitor) {
+        *outMonitor = selectedMonitor;
     }
-
-    if (!selectedMonitor) {
-        POINT pt = {0, 0};
-        selectedMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTOPRIMARY);
-    }
-
     MONITORINFO mi = {sizeof(mi)};
     GetMonitorInfoW(selectedMonitor, &mi);
     return mi.rcWork;
@@ -3734,10 +4103,10 @@ struct PillClientRect {
 };
 PillClientRect g_pillClientRect;
 
-// Blur/acrylic paints across the whole window rect, so it keeps the old
-// "window hugs the pill" behaviour.
-inline bool UsesFixedStage(const Settings& s) {
-    return s.backdropMaterial == BackdropMaterial::None;
+// The island always uses the fixed stage; the backdrop is painted by separate DWM
+// windows (see DwmBackdrop) and does not depend on the window size.
+inline bool UsesFixedStage(const Settings&) {
+    return true;
 }
 
 StageLayout ComputeStageLayout(const Settings& settings, float pillW, float pillH) {
@@ -3799,76 +4168,13 @@ StageLayout ComputeStageLayout(const Settings& settings, float pillW, float pill
 void ApplyOverlayZOrder(HWND hwnd, int width, int height) {
     HWND zOrder = g_settings.alwaysOnTop ? HWND_TOPMOST : HWND_NOTOPMOST;
 
-    if (g_settings.alwaysOnTop) {
-        SetWindowLongPtr(hwnd, GWLP_HWNDPARENT, 0);
-    } else {
-        HWND hProgman = FindWindowW(L"Progman", nullptr);
-        if (hProgman) {
-            SetWindowLongPtr(hwnd, GWLP_HWNDPARENT, reinterpret_cast<LONG_PTR>(hProgman));
-        }
-    }
-
-    SetWindowPos(hwnd, zOrder, 0, 0, 0, 0,
-                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER | SWP_SHOWWINDOW);
-    ApplyBackdropRegion(hwnd, width, height);
-}
-
-// A composition backdrop (#59) is blurred across the window's whole rectangle
-// and is *not* masked by the per-pixel alpha we paint. Left alone that would
-// show a blurred rectangle filling the transparent render padding around the
-// island. Constraining the window to a rounded region confines the blur to the
-// island's own silhouette.
-//
-// The region is cleared again whenever no backdrop is active, because it would
-// otherwise clip the soft drop shadow, which is drawn out in that same padding.
-void ApplyBackdropRegion(HWND hwnd, int windowWidth, int windowHeight) {
-    if (!hwnd) {
-        return;
-    }
-
-    if (g_settings.backdropMaterial == BackdropMaterial::None) {
-        SetWindowRgn(hwnd, nullptr, TRUE);
-        return;
-    }
-
-    const int pillWidth = windowWidth - static_cast<int>(std::round(kRenderPadX * 2.0f));
-    const int pillHeight = windowHeight - static_cast<int>(std::round(kRenderPadY * 2.0f));
-    if (pillWidth <= 1 || pillHeight <= 1) {
-        SetWindowRgn(hwnd, nullptr, TRUE);
-        return;
-    }
-
-    const int left = static_cast<int>(std::round(kRenderPadX));
-    const int top = (g_settings.notchStyle || g_settings.borderMergedMode)
-                        ? 0
-                        : static_cast<int>(std::round(kRenderPadY));
-
-    // The pill bounces a few pixels vertically via the nudge spring, which this
-    // function does not see, so the region is padded to avoid clipping content
-    // mid-animation.
-    constexpr int kNudgeSlack = 10;
-    const int regionTop = std::max(0, top - kNudgeSlack);
-    const int regionBottom = std::min(windowHeight, top + pillHeight + kNudgeSlack);
-
-    int radius;
-    if (g_settings.notchStyle) {
-        radius = static_cast<int>(std::round(16.0f * g_settings.sizeScale));
-    } else if (g_settings.w11Style) {
-        radius = static_cast<int>(std::round(8.0f * g_settings.sizeScale));
-    } else {
-        radius = static_cast<int>(std::round(
-            std::min(pillHeight * 0.5f, 44.0f * g_settings.sizeScale)));
-    }
-    radius = std::max(0, radius);
-
-    // CreateRoundRectRgn takes the full ellipse size, not the corner radius.
-    HRGN region = CreateRoundRectRgn(left, regionTop, left + pillWidth + 1, regionBottom + 1,
-                                     radius * 2, radius * 2);
-    if (region) {
-        // Ownership transfers to the system on success.
-        if (SetWindowRgn(hwnd, region, TRUE) == 0) {
-            DeleteObject(region);
-        }
+    // Yield to the screen-clip overlay.
+    const bool yieldToClipUi = Backdrop::ClipUiActiveCached();
+    SetWindowPos(hwnd, yieldToClipUi ? nullptr : zOrder, 0, 0, 0, 0,
+                 SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER |
+                     (yieldToClipUi ? SWP_NOZORDER : SWP_SHOWWINDOW));
+    if (!yieldToClipUi) {
+        DwmBackdrop::EnsureBehind(hwnd);
     }
 }
 
@@ -3915,6 +4221,9 @@ bool IsShellOwnedWindow(HWND hwnd) {
 // surfaces away from Windows.
 void EnsureTopmost(HWND hwnd, const RECT* pillScreenRect = nullptr) {
     if (!g_settings.alwaysOnTop || !IsWindow(hwnd) || !IsWindowVisible(hwnd)) {
+        return;
+    }
+    if (Backdrop::ClipUiActiveCached()) {
         return;
     }
 
@@ -3967,6 +4276,7 @@ void EnsureTopmost(HWND hwnd, const RECT* pillScreenRect = nullptr) {
     if (covered) {
         SetWindowPos(hwnd, HWND_TOPMOST, 0, 0, 0, 0,
                      SWP_NOMOVE | SWP_NOSIZE | SWP_NOACTIVATE | SWP_NOOWNERZORDER);
+        DwmBackdrop::EnsureBehind(hwnd);
     }
 }
 
@@ -5665,6 +5975,14 @@ DWORD WINAPI NotificationThreadProc(void*) {
                             auto appInfo = userNotification.AppInfo();
                             auto displayInfo = appInfo.DisplayInfo();
                             snapshot.app = displayInfo.DisplayName().c_str();
+
+                            // Filter out noisy background console/script engines like PowerShell that fire system toasts unexpectedly
+                            const std::wstring lowerApp = ToLowerCopy(snapshot.app);
+                            if (lowerApp.find(L"powershell") != std::wstring::npos ||
+                                lowerApp.find(L"pwsh") != std::wstring::npos ||
+                                lowerApp.find(L"cmd.exe") != std::wstring::npos) {
+                                continue;
+                            }
                             try {
                                 auto logo = displayInfo.GetLogo({32.0f, 32.0f});
                                 std::vector<uint8_t> logoBytes = ReadWinRtStreamBytes(logo);
@@ -5710,7 +6028,7 @@ DWORD WINAPI NotificationThreadProc(void*) {
                             }
                             TriggerNudge();
                         } catch (const winrt::hresult_error& nex) {
-                            if (nex.to_abi() == 0x80004001 || nex.to_abi() == 0x80040154) { // E_NOTIMPL or REGDB_E_CLASSNOTREG
+                            if (nex.to_abi() == static_cast<int32_t>(0x80004001) || nex.to_abi() == static_cast<int32_t>(0x80040154)) { // E_NOTIMPL or REGDB_E_CLASSNOTREG
                                 // UWP subsystem not ready, skip without spamming logs
                             } else {
                                 Wh_Log(L"Failed to parse a notification (0x%08X); skipping.", nex.to_abi());
@@ -5723,7 +6041,7 @@ DWORD WINAPI NotificationThreadProc(void*) {
                     seenIds = std::move(currentIds);
                 } catch (const winrt::hresult_error& ex) {
                     const HRESULT hr = ex.to_abi();
-                    if (hr == 0x80004001 || hr == 0x80040154) { // E_NOTIMPL or REGDB_E_CLASSNOTREG
+                    if (hr == static_cast<HRESULT>(0x80004001) || hr == static_cast<HRESULT>(0x80040154)) { // E_NOTIMPL or REGDB_E_CLASSNOTREG
                         if (!accessLogged) {
                             Wh_Log(L"Notification listener UWP subsystem not fully ready (0x%08X). Retrying in background...", hr);
                             accessLogged = true;
@@ -6707,10 +7025,6 @@ DWORD WINAPI WeatherThreadProc(void*) {
 
         Wh_Log(L"Weather: Requesting weather from wttr.in/host: wttr.in, path: %s", url.c_str());
         std::string wRes = HttpGet(L"wttr.in", url.c_str(), true);
-        if (wRes.empty()) {
-            Wh_Log(L"Weather: HTTPS request failed, retrying over plain HTTP...");
-            wRes = HttpGet(L"wttr.in", url.c_str(), false);
-        }
 
         bool weatherCommitted = false;
 
@@ -6873,9 +7187,9 @@ DWORD WINAPI WeatherThreadProc(void*) {
 }
 
 // ── Lyrics (LRCLIB, https://lrclib.net) ──────────────────────────────────────
-// OPTIONAL: User-Agent sent to LRCLIB. 
+// User-Agent sent to LRCLIB.
 constexpr wchar_t kLyricsUserAgent[] =
-    L"DynamicIslandForWindows/1.3.1 (https://github.com/devcode90/Dynamic-Island-for-Windows)";
+    L"DynamicIslandForWindows/" WH_MOD_VERSION L" (https://github.com/devcode90/Dynamic-Island-for-Windows)";
 
 bool IsUrlSafeChar(unsigned char c) {
     return (c >= 'A' && c <= 'Z') || (c >= 'a' && c <= 'z') || (c >= '0' && c <= '9') ||
@@ -7239,17 +7553,15 @@ void CountersAdjust(int dCount, int64_t dBytes) {
 }
 
 // ---- cache folder -------------------------------------------------------------
-// %LOCALAPPDATA%\DynamicIslandForWindows\lyrics. Empty if LOCALAPPDATA is unset,
-// in which case the disk layer simply behaves as a permanent miss.
+// Windhawk mod storage directory \lyrics. Strictly kept inside mod storage.
 const std::wstring& CacheDir(bool create) {
     static std::wstring dir;
     static bool resolved = false;
     if (!resolved) {
         resolved = true;
-        wchar_t base[MAX_PATH] = {};
-        const DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", base, ARRAYSIZE(base));
-        if (n > 0 && n < ARRAYSIZE(base)) {
-            dir = std::wstring(base) + L"\\DynamicIslandForWindows\\lyrics";
+        wchar_t storagePath[MAX_PATH] = {};
+        if (Wh_GetModStoragePath(storagePath, ARRAYSIZE(storagePath))) {
+            dir = std::wstring(storagePath) + L"\\lyrics";
         }
     }
     if (create && !dir.empty()) {
@@ -8097,7 +8409,9 @@ DWORD WINAPI LyricsThreadProc(void*) {
             diskCapBytes = static_cast<uint64_t>(std::max(0, g_settings.lyricsCacheMaxMB)) * 1024ull * 1024ull;
         }
         LyricsCache::IterationGuard cacheGuard(diskCacheOn, diskCapBytes);
-        if (!lyricsEnabled) {
+        const bool lyricsViewVisible =
+            (NowSeconds() - g_lastLyricsViewTime.load(std::memory_order_relaxed)) < 3.0;
+        if (!lyricsEnabled || !lyricsViewVisible) {
             WaitForSingleObject(g_stopEvent, 1000);
             continue;
         }
@@ -8938,19 +9252,20 @@ bool IsDeviceActiveViaRegistry(const wchar_t* capability, std::wstring* outAppNa
     basePath += capability;
 
     auto CheckSubkeys = [&](HKEY hKeyParent) -> bool {
+        constexpr REGSAM kSam = KEY_READ | KEY_WOW64_64KEY;
         DWORD index = 0;
         wchar_t subKeyName[256];
         DWORD nameLen = ARRAYSIZE(subKeyName);
         while (RegEnumKeyExW(hKeyParent, index, subKeyName, &nameLen, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
             HKEY hSub;
-            if (RegOpenKeyExW(hKeyParent, subKeyName, 0, KEY_READ, &hSub) == ERROR_SUCCESS) {
+            if (RegOpenKeyExW(hKeyParent, subKeyName, 0, kSam, &hSub) == ERROR_SUCCESS) {
                 if (_wcsicmp(subKeyName, L"NonPackaged") == 0) {
                     DWORD npIndex = 0;
                     wchar_t npSubKeyName[256];
                     DWORD npNameLen = ARRAYSIZE(npSubKeyName);
                     while (RegEnumKeyExW(hSub, npIndex, npSubKeyName, &npNameLen, nullptr, nullptr, nullptr, nullptr) == ERROR_SUCCESS) {
                         HKEY hNpSub;
-                        if (RegOpenKeyExW(hSub, npSubKeyName, 0, KEY_READ, &hNpSub) == ERROR_SUCCESS) {
+                        if (RegOpenKeyExW(hSub, npSubKeyName, 0, kSam, &hNpSub) == ERROR_SUCCESS) {
                             if (ConsentStoreEntryInUse(hNpSub)) {
                                 if (outAppName && outAppName->empty()) {
                                     *outAppName = CleanActiveAppName(npSubKeyName);
@@ -8982,13 +9297,13 @@ bool IsDeviceActiveViaRegistry(const wchar_t* capability, std::wstring* outAppNa
     };
 
     HKEY hKey;
-    if (RegOpenKeyExW(HKEY_CURRENT_USER, basePath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+    if (RegOpenKeyExW(HKEY_CURRENT_USER, basePath.c_str(), 0, KEY_READ | KEY_WOW64_64KEY, &hKey) == ERROR_SUCCESS) {
         isActive = CheckSubkeys(hKey);
         RegCloseKey(hKey);
     }
 
     if (!isActive) {
-        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, basePath.c_str(), 0, KEY_READ, &hKey) == ERROR_SUCCESS) {
+        if (RegOpenKeyExW(HKEY_LOCAL_MACHINE, basePath.c_str(), 0, KEY_READ | KEY_WOW64_64KEY, &hKey) == ERROR_SUCCESS) {
             isActive = CheckSubkeys(hKey);
             RegCloseKey(hKey);
         }
@@ -9147,6 +9462,14 @@ bool IsLikelyToastWindow(HWND hwnd, const wchar_t* className, const wchar_t* tit
         return false;
     }
 
+    std::wstring image;
+    if (ProcessImageNameForWindow(hwnd, &image)) {
+        const std::wstring base = ToLowerCopy(BaseNameFromPath(image));
+        if (base == L"powershell.exe" || base == L"pwsh.exe" || base == L"conhost.exe" || base == L"cmd.exe") {
+            return false;
+        }
+    }
+
     const std::wstring cls = ToLowerCopy(className ? className : L"");
     const std::wstring text = ToLowerCopy(title ? title : L"");
 
@@ -9218,78 +9541,83 @@ void CaptureShellNotification(HWND hwnd) {
     // Spawn a background thread to extract the full rich text body of the toast using UI Automation.
     // Modern Windows Toasts often only provide the App Name via GetWindowTextW, leaving the body hidden in the XAML tree.
     std::thread([hwnd]() {
-        Sleep(400); // Give the heavy UWP XAML tree enough time to fully construct the text nodes
-        HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
-        if (SUCCEEDED(hr)) {
-            IUIAutomation* uia = nullptr;
-            hr = CoCreateInstance(__uuidof(CUIAutomation), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IUIAutomation), (void**)&uia);
-            if (SUCCEEDED(hr) && uia) {
-                IUIAutomation2* uia2 = nullptr;
-                if (SUCCEEDED(uia->QueryInterface(__uuidof(IUIAutomation2), (void**)&uia2)) && uia2) {
-                    uia2->put_TransactionTimeout(500);
-                    uia2->put_ConnectionTimeout(500);
-                    uia2->Release();
-                }
-                IUIAutomationElement* windowEl = nullptr;
-                if (SUCCEEDED(uia->ElementFromHandle(hwnd, &windowEl)) && windowEl) {
-                    IUIAutomationCondition* cond = nullptr;
-                    uia->CreateTrueCondition(&cond);
-                    IUIAutomationElementArray* elements = nullptr;
-                    if (SUCCEEDED(windowEl->FindAll(TreeScope_Descendants, cond, &elements)) && elements) {
-                        int count = 0;
-                        elements->get_Length(&count);
-                        std::wstring appName;
-                        std::wstring fullText;
-                        for (int i = 0; i < count; ++i) {
-                            IUIAutomationElement* el = nullptr;
-                            if (SUCCEEDED(elements->GetElement(i, &el)) && el) {
-                                BSTR name = nullptr;
-                                el->get_CurrentName(&name);
-                                if (name && wcslen(name) > 0) {
-                                    std::wstring chunk = name;
-                                    // Skip generic screen-reader labels often found in toasts
-                                    if (chunk != L"Notification" && chunk != L"New notification") {
-                                        if (appName.empty()) {
-                                            appName = chunk;
-                                        } else {
-                                            if (!fullText.empty()) fullText += L"  -  ";
-                                            fullText += chunk;
+        try {
+            Sleep(400); // Give the heavy UWP XAML tree enough time to fully construct the text nodes
+            if (!IsWindow(hwnd)) return;
+            HRESULT hr = CoInitializeEx(nullptr, COINIT_MULTITHREADED);
+            if (SUCCEEDED(hr)) {
+                IUIAutomation* uia = nullptr;
+                hr = CoCreateInstance(__uuidof(CUIAutomation), nullptr, CLSCTX_INPROC_SERVER, __uuidof(IUIAutomation), (void**)&uia);
+                if (SUCCEEDED(hr) && uia) {
+                    IUIAutomation2* uia2 = nullptr;
+                    if (SUCCEEDED(uia->QueryInterface(__uuidof(IUIAutomation2), (void**)&uia2)) && uia2) {
+                        uia2->put_TransactionTimeout(500);
+                        uia2->put_ConnectionTimeout(500);
+                        uia2->Release();
+                    }
+                    IUIAutomationElement* windowEl = nullptr;
+                    if (SUCCEEDED(uia->ElementFromHandle(hwnd, &windowEl)) && windowEl) {
+                        IUIAutomationCondition* cond = nullptr;
+                        uia->CreateTrueCondition(&cond);
+                        IUIAutomationElementArray* elements = nullptr;
+                        if (SUCCEEDED(windowEl->FindAll(TreeScope_Descendants, cond, &elements)) && elements) {
+                            int count = 0;
+                            elements->get_Length(&count);
+                            std::wstring appName;
+                            std::wstring fullText;
+                            for (int i = 0; i < count; ++i) {
+                                IUIAutomationElement* el = nullptr;
+                                if (SUCCEEDED(elements->GetElement(i, &el)) && el) {
+                                    BSTR name = nullptr;
+                                    el->get_CurrentName(&name);
+                                    if (name && wcslen(name) > 0) {
+                                        std::wstring chunk = name;
+                                        // Skip generic screen-reader labels often found in toasts
+                                        if (chunk != L"Notification" && chunk != L"New notification") {
+                                            if (appName.empty()) {
+                                                appName = chunk;
+                                            } else {
+                                                if (!fullText.empty()) fullText += L"  -  ";
+                                                fullText += chunk;
+                                            }
                                         }
                                     }
+                                    if (name) SysFreeString(name);
+                                    el->Release();
                                 }
-                                if (name) SysFreeString(name);
-                                el->Release();
                             }
-                        }
-                        elements->Release();
+                            elements->Release();
 
-                        if (fullText.empty() && !appName.empty()) {
-                            fullText = appName;
-                            appName = L"Notification";
-                        }
+                            if (fullText.empty() && !appName.empty()) {
+                                fullText = appName;
+                                appName = L"Notification";
+                            }
 
-                        if (!fullText.empty()) {
-                            std::lock_guard lock(g_stateMutex);
-                            if (g_state.notification.active) {
-                                if (!appName.empty()) {
-                                    g_state.notification.app = appName;
-                                    if (appName != L"Notification") {
-                                        PixelsRef resolvedIcon = FindAppIconByName(appName, 64);
+                            if (!fullText.empty()) {
+                                PixelsRef resolvedIcon;
+                                if (!appName.empty() && appName != L"Notification") {
+                                    resolvedIcon = FindAppIconByName(appName, 64);
+                                }
+                                std::lock_guard lock(g_stateMutex);
+                                if (g_state.notification.active) {
+                                    if (!appName.empty()) {
+                                        g_state.notification.app = appName;
                                         if (resolvedIcon) {
                                             g_state.notification.icon = std::move(resolvedIcon);
                                         }
                                     }
+                                    g_state.notification.title = fullText;
                                 }
-                                g_state.notification.title = fullText;
                             }
                         }
+                        if (cond) cond->Release();
+                        windowEl->Release();
                     }
-                    if (cond) cond->Release();
-                    windowEl->Release();
+                    uia->Release();
                 }
-                uia->Release();
+                CoUninitialize();
             }
-            CoUninitialize();
+        } catch (...) {
         }
     }).detach();
 }
@@ -9473,9 +9801,8 @@ int LookupRowAtContentPoint(const MediaContentPoint& pt, int rowCount, bool head
 // and add one line to LookupText().
 
 // Wikimedia asks API clients to send a descriptive User-Agent with contact info.
-// Replace the placeholder with your fork's page, like kLyricsUserAgent.
 constexpr wchar_t kLookupUserAgent[] =
-    L"DynamicIslandForWindows/1.3 (https://github.com/devcode90/Dynamic-Island-for-Windows) QuickLookup";
+    L"DynamicIslandForWindows/" WH_MOD_VERSION L" (https://github.com/devcode90/Dynamic-Island-for-Windows) QuickLookup";
 
 // Bumped for every new request AND when the card is dismissed. A worker only
 // publishes if its id is still current, so a slow reply can never resurrect a card
@@ -10207,16 +10534,12 @@ std::vector<LookupRow> CurrentLookupRows(LookupStatus* status) {
 }
 
 void ForceForeground(HWND hwnd) {
-    HWND fg = GetForegroundWindow();
-    const DWORD fgThread = fg ? GetWindowThreadProcessId(fg, nullptr) : 0;
-    const DWORD me = GetCurrentThreadId();
-    const bool attached = fgThread && fgThread != me && AttachThreadInput(me, fgThread, TRUE);
+    INPUT input{};
+    SendInput(1, &input, sizeof(INPUT));
     SetForegroundWindow(hwnd);
     BringWindowToTop(hwnd);
+    DwmBackdrop::EnsureBehind(hwnd);
     SetFocus(hwnd);
-    if (attached) {
-        AttachThreadInput(me, fgThread, FALSE);
-    }
 }
 
 // The island is WS_EX_NOACTIVATE so it never steals focus. While the search box is
@@ -11075,9 +11398,13 @@ void ShowMediaSourcePopup(HWND hwnd, POINT screenPoint) {
     HMENU menu = CreatePopupMenu();
     const std::vector<MediaSourceMenuItem> items = AppendMediaSourceItems(menu);
     SetForegroundWindow(hwnd);
+    DwmBackdrop::EnsureBehind(hwnd);
     const UINT cmd = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_RIGHTBUTTON,
                                     screenPoint.x, screenPoint.y, 0, hwnd, nullptr);
     DestroyMenu(menu);
+    PostMessageW(hwnd, WM_NULL, 0, 0);
+    DwmBackdrop::EnsureBehind(hwnd);
+    g_layoutDirty = true;
     ApplyMediaSourceMenuCommand(cmd, items);
 }
 
@@ -11126,7 +11453,7 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
         AppendMenuW(menu, MF_POPUP, reinterpret_cast<UINT_PTR>(trayMenu), Loc(L"File Tray"));
     }
     AppendMenuW(menu, MF_STRING, 2, L"Pin expanded");
-    AppendMenuW(menu, MF_STRING, 3, Wh_GetIntValue(L"GameOverlayPinned", 0) ? L"Hide game overlay" : L"Show game overlay");
+    AppendMenuW(menu, MF_STRING, 3, g_gameOverlayPinned.load() ? L"Hide game overlay" : L"Show game overlay");
     {
         // g_settings already reflects any right-click override, so it is the
         // source of truth for which style is active.
@@ -11203,7 +11530,7 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
         }
     }
     AppendMenuW(menu, MF_SEPARATOR, 0, nullptr);
-    const int activeOpacity = Wh_GetIntValue(L"PillOpacityOverride", -1);
+    const int activeOpacity = g_pillOpacityOverride.load();
     HMENU opacityMenu = CreatePopupMenu();
     AppendMenuW(opacityMenu, MF_STRING | (activeOpacity == 100 ? MF_CHECKED : 0), 4, L"100% (Opaque)");
     AppendMenuW(opacityMenu, MF_STRING | (activeOpacity == 85 ? MF_CHECKED : 0), 5, L"85%");
@@ -11228,9 +11555,13 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
     AppendMenuW(menu, MF_STRING, 9, L"Open Windhawk settings");
 
     SetForegroundWindow(hwnd);
+    DwmBackdrop::EnsureBehind(hwnd);
     const UINT cmd = TrackPopupMenu(menu, TPM_RETURNCMD | TPM_RIGHTBUTTON,
                                    screenPoint.x, screenPoint.y, 0, hwnd, nullptr);
     DestroyMenu(menu);
+    PostMessageW(hwnd, WM_NULL, 0, 0);
+    DwmBackdrop::EnsureBehind(hwnd);
+    g_layoutDirty = true;
 
     // Theme ids are a contiguous range rather than individual cases, so adding a
     // palette to kThemePalettes needs no change here.
@@ -11253,29 +11584,40 @@ void ShowContextMenu(HWND hwnd, POINT screenPoint) {
             g_layoutDirty = true;
             TriggerNudge();
             break;
-        case 2:
-            Wh_SetIntValue(L"PinnedExpanded", Wh_GetIntValue(L"PinnedExpanded", 0) ? 0 : 1);
+        case 2: {
+            const bool nextVal = !g_pinnedExpanded.load();
+            g_pinnedExpanded.store(nextVal);
+            Wh_SetIntValue(L"PinnedExpanded", nextVal ? 1 : 0);
             break;
-        case 3:
-            Wh_SetIntValue(L"GameOverlayPinned", Wh_GetIntValue(L"GameOverlayPinned", 0) ? 0 : 1);
+        }
+        case 3: {
+            const bool nextVal = !g_gameOverlayPinned.load();
+            g_gameOverlayPinned.store(nextVal);
+            Wh_SetIntValue(L"GameOverlayPinned", nextVal ? 1 : 0);
             break;
+        }
         case 4:
+            g_pillOpacityOverride.store(100);
             Wh_SetIntValue(L"PillOpacityOverride", 100);
             LoadSettings();
             break;
         case 5:
+            g_pillOpacityOverride.store(85);
             Wh_SetIntValue(L"PillOpacityOverride", 85);
             LoadSettings();
             break;
         case 6:
+            g_pillOpacityOverride.store(70);
             Wh_SetIntValue(L"PillOpacityOverride", 70);
             LoadSettings();
             break;
         case 7:
+            g_pillOpacityOverride.store(55);
             Wh_SetIntValue(L"PillOpacityOverride", 55);
             LoadSettings();
             break;
         case 8:
+            g_pillOpacityOverride.store(-1);
             Wh_SetIntValue(L"PillOpacityOverride", -1);
             LoadSettings();
             break;
@@ -11714,6 +12056,8 @@ class Renderer {
             return false;
         }
 
+        pillCount_ = 0;  // DrawPill records each pill it draws for the backdrop windows
+
         target_->BeginDraw();
         target_->SetTransform(D2D1::Matrix3x2F::Translation(-static_cast<float>(dirty.left),
                                                             -static_cast<float>(dirty.top)));
@@ -11729,7 +12073,7 @@ class Renderer {
         settingsOpacity_ = settings.pillOpacity;
 
         const bool gameMetricsPresent = primary.kind == IslandKind::Idle &&
-            (settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0);
+            (settings.gameOverlay || g_gameOverlayPinned.load());
         // True while the island is collapsing to nothing (auto-hide / fullscreen).
         islandHiding_ = primary.width < 1.0f && primary.height < 1.0f && !secondary;
 
@@ -11760,6 +12104,7 @@ class Renderer {
                 } else if (!settings.w11Style) {
                     radius = std::min(radius, 44.0f * settings.sizeScale);
                 }
+                RecordBackdropPill(islandRect, radius);
                 DrawSoftShadow(islandRect, radius);
                 const IslandKind chromeKind =
                     (primary.kind == IslandKind::Media || secondary->kind == IslandKind::Media)
@@ -11799,6 +12144,7 @@ class Renderer {
                     } else if (!settings.w11Style) {
                         radius = std::min(radius, 44.0f * settings.sizeScale);
                     }
+                    RecordBackdropPill(islandRect, radius);
                     DrawSoftShadow(islandRect, radius);
                     DrawPillSurface(islandRect, radius, IslandKind::Media, settings);
 
@@ -11852,8 +12198,10 @@ class Renderer {
             stageValid_ = false;
         }
 
-        if (presented && sizeChanged && settings.backdropMaterial != BackdropMaterial::None) {
-            ApplyBackdropRegion(hwnd_, bitmapWidth_, bitmapHeight_);
+        if (presented) {
+            DwmBackdrop::Sync(hwnd_, stage.origin, pillRects_, pillRadii_, pillCount_,
+                              settings.notchStyle, settings.backdropMaterial, pillBgColor_,
+                              settings.backdropTint);
         }
         return presented;
     }
@@ -12670,6 +13018,9 @@ class Renderer {
         }
 
         if (drawChrome) {
+            // Combined islands draw (and record) their own silhouette, so only
+            // standalone pills register a backdrop region here.
+            RecordBackdropPill(rect, radius);
             DrawSoftShadow(rect, radius);
             DrawPillSurface(rect, radius, activity.kind, settings);
         }
@@ -12759,9 +13110,18 @@ class Renderer {
     // to a DC-bound target for UpdateLayeredWindow), so a Gaussian blur effect
     // is not available -- but the render padding around the pill leaves room to
     // fake it convincingly and cheaply.
+    // DrawPill and the combined-island paths record each visible silhouette
+    // for the backdrop windows.
+    void RecordBackdropPill(D2D1_RECT_F rect, float radius) {
+        if (pillCount_ < DwmBackdrop::kMaxPills) {
+            pillRects_[pillCount_] = rect;
+            pillRadii_[pillCount_] = radius;
+            ++pillCount_;
+        }
+    }
+
     void DrawSoftShadow(D2D1_RECT_F rect, float radius) {
-        // A backdrop material clips the window to the island's silhouette, so
-        // anything drawn out in the padding would be cut off anyway.
+        // The island sits on top of the backdrop, so a shadow here would darken the blur.
         if (!g_settings.dropShadow || g_settings.backdropMaterial != BackdropMaterial::None) {
             return;
         }
@@ -13006,14 +13366,16 @@ class Renderer {
             FillIslandShape(rect, radius, settings.w11Style, settings.notchStyle, tintBrush_.Get());
         }
 
+        // Blur / acrylic and tint come from the DWM window below (see DwmBackdrop);
+        // only the fill is drawn here.
+
         // User-defined pill background color. The authored alpha is combined
         // with the global pill transparency, so a plain 6-digit hex behaves
         // exactly as before (alpha 1.0) while #RRGGBBAA stays translucent.
         D2D1_COLOR_F bg = pillBgColor_;
         bg.a = Clamp(bg.a * settingsOpacity_, 0.0f, 1.0f);
         if (settings.backdropMaterial != BackdropMaterial::None) {
-            // DWM is blurring what is behind the window; an opaque fill would
-            // hide it entirely, so cap the fill and let the backdrop through.
+            // An opaque fill would hide the backdrop, so cap it.
             bg.a = std::min(bg.a, settings.backdropFillAlpha);
         }
         if (ID2D1SolidColorBrush* fillBrush = AcquireBrush(bg)) {
@@ -13055,24 +13417,6 @@ class Renderer {
         }
     }
 
-    void DrawAccentGlow(D2D1_RECT_F rect, const Activity& activity, double now) {
-        float opacity = activity.kind == IslandKind::Media ? 0.23f : 0.12f;
-        if (activity.kind == IslandKind::BatteryLow) {
-            redBrush_->SetOpacity(0.18f);
-            target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(rect.right - 38, rect.top + 20), 56, 36),
-                                 redBrush_.Get());
-            redBrush_->SetOpacity(1.0f);
-            return;
-        }
-
-        opacity += 0.05f * (0.5f + 0.5f * std::sin(static_cast<float>(now * 1.7)));
-        accentBrush_->SetOpacity(opacity);
-        target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(rect.left + 48, rect.top + 10), 70, 42),
-                             accentBrush_.Get());
-        target_->FillEllipse(D2D1::Ellipse(D2D1::Point2F(rect.right - 58, rect.bottom - 8), 76, 42),
-                             accentBrush_.Get());
-        accentBrush_->SetOpacity(1.0f);
-    }
 
     static void GetWeatherIconAndText(int code, std::wstring& icon, std::wstring& text) {
         switch (code) {
@@ -14424,6 +14768,7 @@ class Renderer {
         {
             const bool lyricsFresh = lyricsLastDrawn_ >= 0.0 && (now - lyricsLastDrawn_) < 0.25;
             lyricsLastDrawn_ = now;
+            g_lastLyricsViewTime.store(now, std::memory_order_relaxed);
             if (!lyricsFresh) {
                 lyricsScrollAnimStartTime_ = -1.0;  // triggers the snap branch below
                 lyricsWaveformFadeTime_ = -1.0;     // snaps the visualizer alpha
@@ -15001,7 +15346,7 @@ class Renderer {
 
     void DrawIdleDashboard(const SharedState& state, D2D1_RECT_F rect, const Settings& settings,
                            double now) {
-        if (settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0) {
+        if (settings.gameOverlay || g_gameOverlayPinned.load()) {
             DrawGameOverlay(state, rect, 1.0f);
             return;
         }
@@ -16414,6 +16759,7 @@ class Renderer {
         const bool fresh = immLastDrawn_ >= 0.0 && (now - immLastDrawn_) < 0.25;
         const float dt = fresh ? Clamp(static_cast<float>(now - immLastDrawn_), 0.001f, 0.05f) : 0.016f;
         immLastDrawn_ = now;
+        g_lastLyricsViewTime.store(now, std::memory_order_relaxed);
 
         ID2D1Layer* fadeLayer = AcquireLayer();
         if (fadeLayer) {
@@ -16594,7 +16940,7 @@ class Renderer {
 
                 target_->SetTransform(D2D1::Matrix3x2F::Scale(s, s, D2D1::Point2F(cx, yc)) * oldTransform);
 
-                if (settings.karaokeLyrics && i == idx) {
+                if (settings.karaokeLyrics && i == idx && idx >= 0) {
                     // Dim base, then a soft-edged bright wipe following the song.
                     mutedBrush_->SetOpacity(alpha * (0.62f + 0.38f * (1.0f - focus)));
                     target_->DrawTextLayout(origin, L.layout.Get(), mutedBrush_.Get(),
@@ -17006,6 +17352,7 @@ class Renderer {
     // Draws the current synced lyric line inside `area`. When the line changes,
     // the old one slides up and fades out while the new one rises in from below.
     void DrawCollapsedLyrics(const SharedState& state, D2D1_RECT_F area, double now, float alpha) {
+        g_lastLyricsViewTime.store(now, std::memory_order_relaxed);
         IDWriteTextFormat* fmt = textFormat_.Get();
         if (!fmt || !dwriteFactory_ || alpha <= 0.01f) {
             return;
@@ -20689,6 +21036,11 @@ class Renderer {
     bool stageValid_ = false;
     double lastFullPaint_ = -1e9;
 
+    // Pills drawn this frame, in client px, for the DWM backdrop windows (#59).
+    D2D1_RECT_F pillRects_[DwmBackdrop::kMaxPills] = {};
+    float pillRadii_[DwmBackdrop::kMaxPills] = {};
+    int pillCount_ = 0;
+
     ComPtr<ID2D1Factory> d2dFactory_;
     ComPtr<ID2D1DCRenderTarget> target_;
     ComPtr<IDWriteFactory> dwriteFactory_;
@@ -21290,13 +21642,41 @@ namespace FileTrayStore {
 
 std::mutex g_ioMutex;  // serialises the load/save file access
 
+inline std::wstring GetCurrentUserSid() {
+    HANDLE hToken = nullptr;
+    if (OpenProcessToken(GetCurrentProcess(), TOKEN_QUERY, &hToken)) {
+        DWORD len = 0;
+        GetTokenInformation(hToken, TokenUser, nullptr, 0, &len);
+        if (len > 0) {
+            std::vector<BYTE> buffer(len);
+            if (GetTokenInformation(hToken, TokenUser, buffer.data(), len, &len)) {
+                auto* tokenUser = reinterpret_cast<TOKEN_USER*>(buffer.data());
+                LPWSTR sidString = nullptr;
+                if (ConvertSidToStringSidW(tokenUser->User.Sid, &sidString)) {
+                    std::wstring result = sidString;
+                    LocalFree(sidString);
+                    CloseHandle(hToken);
+                    return result;
+                }
+            }
+        }
+        CloseHandle(hToken);
+    }
+    wchar_t userBuf[256] = {};
+    DWORD un = ARRAYSIZE(userBuf);
+    if (GetUserNameW(userBuf, &un) && un > 0) {
+        return userBuf;
+    }
+    return L"default";
+}
+
 bool ResolvePaths(std::wstring* dir, std::wstring* file) {
-    wchar_t base[MAX_PATH] = {};
-    const DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", base, ARRAYSIZE(base));
-    if (n == 0 || n >= ARRAYSIZE(base)) {
+    wchar_t storagePath[MAX_PATH] = {};
+    if (!Wh_GetModStoragePath(storagePath, ARRAYSIZE(storagePath))) {
         return false;
     }
-    *dir = std::wstring(base) + L"\\DynamicIslandForWindows\\filetray";
+    const std::wstring userKey = GetCurrentUserSid();
+    *dir = std::wstring(storagePath) + L"\\filetray\\" + userKey;
     *file = *dir + L"\\items.dat";
     return true;
 }
@@ -21371,8 +21751,7 @@ void SaveFileTray() {
         return;
     }
 
-    CreateDirectoryW(dir.substr(0, dir.find_last_of(L'\\')).c_str(), nullptr);
-    CreateDirectoryW(dir.c_str(), nullptr);
+    SHCreateDirectoryExW(nullptr, dir.c_str(), nullptr);
 
     std::string data = "DIWFT 1\n";
     for (const Row& row : rows) {
@@ -21890,7 +22269,7 @@ void StartFileTrayDrag(const std::wstring& path) {
     ComPtr<IDropSource> source;
     source.Attach(new TrayDropSource());
 
-    constexpr DWORD kOkEffects = DROPEFFECT_COPY | DROPEFFECT_MOVE | DROPEFFECT_LINK;
+    constexpr DWORD kOkEffects = DROPEFFECT_COPY | DROPEFFECT_LINK;
     DWORD effect = DROPEFFECT_NONE;
 
     // SHDoDragDrop adds the normal Explorer drag image (thumbnail + name).
@@ -22033,14 +22412,9 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             ApplyHideShowHotkey();
             return 0;
 
-        case WM_APP_APPLY_BACKDROP: {
+        case WM_APP_APPLY_BACKDROP:
             ApplyBackdropMaterial(hwnd);
-            RECT rc{};
-            if (GetWindowRect(hwnd, &rc)) {
-                ApplyBackdropRegion(hwnd, rc.right - rc.left, rc.bottom - rc.top);
-            }
             return 0;
-        }
 
         case WM_APP_MOUSE_WAKE:
             // No-op payload — its only job is to wake MsgWaitForMultipleObjects
@@ -22500,11 +22874,33 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     mediaActive = g_settings.media && g_state.media.available;
                     kinds = ChooseActivities(g_state, g_settings, NowSeconds());
                 }
+
+                // Clicking an active transient notification or clipboard card immediately dismisses it cleanly.
+                // In a split layout (kinds.size() > 1), don't dismiss if clicking on the secondary pill on the right.
+                const bool onSecondarySplit = (kinds.size() > 1 && g_pillClientRect.valid &&
+                                               xPos > (g_pillClientRect.left + (g_pillClientRect.right - g_pillClientRect.left) * 0.5f));
+                if (!kinds.empty() && !onSecondarySplit &&
+                    (kinds[0] == IslandKind::Notification || kinds[0] == IslandKind::Clipboard)) {
+                    {
+                        std::lock_guard lock(g_stateMutex);
+                        if (kinds[0] == IslandKind::Notification) {
+                            g_state.notification.active = false;
+                            g_state.notification.expiresAt = 0.0;
+                        } else if (kinds[0] == IslandKind::Clipboard) {
+                            g_state.clipboard.active = false;
+                            g_state.clipboard.expiresAt = 0.0;
+                        }
+                    }
+                    g_clickExpanded = false;
+                    g_layoutDirty = true;
+                    TriggerNudge();
+                    return 0;
+                }
                 const bool gameMetricsPresent =
                     !kinds.empty() && kinds[0] == IslandKind::Idle &&
-                    (g_settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0);
+                    (g_settings.gameOverlay || g_gameOverlayPinned.load());
 
-                bool expanded = Wh_GetIntValue(L"PinnedExpanded", 0) != 0 || g_clickExpanded.load();
+                bool expanded = g_pinnedExpanded.load() || g_clickExpanded.load();
                 if (!gameMetricsPresent && !g_settings.expandOnHover && !expanded) {
                     g_clickExpanded = true;
                     g_layoutDirty = true;
@@ -22648,9 +23044,12 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             ToggleEndpointMute();
             return 0;
 
-        case WM_LBUTTONDBLCLK:
-            Wh_SetIntValue(L"PinnedExpanded", Wh_GetIntValue(L"PinnedExpanded", 0) ? 0 : 1);
+        case WM_LBUTTONDBLCLK: {
+            const bool nextVal = !g_pinnedExpanded.load();
+            g_pinnedExpanded.store(nextVal);
+            Wh_SetIntValue(L"PinnedExpanded", nextVal ? 1 : 0);
             return 0;
+        }
 
         case WM_MOUSEWHEEL: {
             // Delta is accumulated rather than dropped inside a debounce window, so
@@ -22693,6 +23092,13 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             POINT pt = {GET_X_LPARAM(lParam), GET_Y_LPARAM(lParam)};
             ClientToScreen(hwnd, &pt);
             ShowContextMenu(hwnd, pt);
+            return 0;
+        }
+
+        case WM_DPICHANGED:
+        case WM_DISPLAYCHANGE: {
+            g_layoutDirty = true;
+            PostMessageW(hwnd, WM_APP_NEW_EVENT, 0, 0);
             return 0;
         }
 
@@ -22793,8 +23199,6 @@ DWORD WINAPI RenderThreadProc(void*) {
     if (pChangeWindowMessageFilterEx) {
         if (g_shellHookMessage) pChangeWindowMessageFilterEx(hwnd, g_shellHookMessage, 1 /*MSGFLT_ALLOW*/, nullptr);
         if (g_taskbarCreatedMessage) pChangeWindowMessageFilterEx(hwnd, g_taskbarCreatedMessage, 1 /*MSGFLT_ALLOW*/, nullptr);
-        pChangeWindowMessageFilterEx(hwnd, WM_COPYDATA, 1 /*MSGFLT_ALLOW*/, nullptr);
-        pChangeWindowMessageFilterEx(hwnd, 0x0049 /*WM_COPYGLOBALDATA*/, 1 /*MSGFLT_ALLOW*/, nullptr);
     } else {
         using ChangeWindowMessageFilter_t = BOOL(WINAPI*)(UINT, DWORD);
         static auto pChangeWindowMessageFilter = reinterpret_cast<ChangeWindowMessageFilter_t>(
@@ -22802,8 +23206,6 @@ DWORD WINAPI RenderThreadProc(void*) {
         if (pChangeWindowMessageFilter) {
             if (g_shellHookMessage) pChangeWindowMessageFilter(g_shellHookMessage, 1 /*MSGFLT_ADD*/);
             if (g_taskbarCreatedMessage) pChangeWindowMessageFilter(g_taskbarCreatedMessage, 1 /*MSGFLT_ADD*/);
-            pChangeWindowMessageFilter(WM_COPYDATA, 1 /*MSGFLT_ADD*/);
-            pChangeWindowMessageFilter(0x0049 /*WM_COPYGLOBALDATA*/, 1 /*MSGFLT_ADD*/);
         }
     }
     EnableBlurBehind(hwnd);
@@ -22832,13 +23234,6 @@ DWORD WINAPI RenderThreadProc(void*) {
     // COM apartment this thread already initialised.
     LoadFileTray();
 
-    using TimeBeginPeriod_t = MMRESULT(WINAPI*)(UINT);
-    using TimeEndPeriod_t = MMRESULT(WINAPI*)(UINT);
-    static auto pTimeBeginPeriod = reinterpret_cast<TimeBeginPeriod_t>(
-        GetProcAddress(LoadLibraryW(L"winmm.dll"), "timeBeginPeriod"));
-    static auto pTimeEndPeriod = reinterpret_cast<TimeEndPeriod_t>(
-        GetProcAddress(GetModuleHandleW(L"winmm.dll"), "timeEndPeriod"));
-
     // A 1ms timer resolution costs power, so it is requested only while the island
     // is actually animating. It used to be requested once here and released at
     // shutdown, so a parked or idle island held it for the mod's whole lifetime.
@@ -22866,13 +23261,11 @@ DWORD WINAPI RenderThreadProc(void*) {
             return;
         }
         if (want) {
-            if (pTimeBeginPeriod && pTimeBeginPeriod(1) == TIMERR_NOERROR) {
+            if (timeBeginPeriod(1) == TIMERR_NOERROR) {
                 highResTimer = true;
             }
         } else {
-            if (pTimeEndPeriod) {
-                pTimeEndPeriod(1);
-            }
+            timeEndPeriod(1);
             highResTimer = false;
         }
     };
@@ -22930,6 +23323,7 @@ DWORD WINAPI RenderThreadProc(void*) {
                 // Just hid: drop to zero-CPU parking immediately, no
                 // lingering render/animation work this frame.
                 ShowWindow(hwnd, SW_HIDE);
+                DwmBackdrop::HideAll();
                 g_audioCaptureNeeded.store(false, std::memory_order_relaxed);
                 wasManuallyHidden = true;
             }
@@ -23102,7 +23496,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             secondary = ActivityForKind(kinds[1], g_settings, snapshot);
         }
 
-        const bool pinned = Wh_GetIntValue(L"PinnedExpanded", 0) != 0;
+        const bool pinned = g_pinnedExpanded.load();
 
         if (primary.kind != previousPrimary) {
             // Skip the vertical bump when an alert closes back to media/idle —
@@ -23206,7 +23600,7 @@ DWORD WINAPI RenderThreadProc(void*) {
 
         bool isHoverExpanded = g_settings.expandOnHover ? hover : (hover && g_clickExpanded.load());
         const bool gameMetricsPresent = primary.kind == IslandKind::Idle &&
-            (g_settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0);
+            (g_settings.gameOverlay || g_gameOverlayPinned.load());
         if (gameMetricsPresent) {
             isHoverExpanded = false;
         }
@@ -23306,7 +23700,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             }
         }
         if (!isFullscreen && primary.kind == IslandKind::Idle &&
-            (g_settings.gameOverlay || Wh_GetIntValue(L"GameOverlayPinned", 0) != 0)) {
+            (g_settings.gameOverlay || g_gameOverlayPinned.load())) {
             // Width follows the metrics actually enabled (#25) so switching some
             // off shrinks the strip instead of leaving empty space, and compact
             // mode narrows it enough to sit neatly in the taskbar area. Both the
@@ -23516,14 +23910,22 @@ DWORD WINAPI RenderThreadProc(void*) {
             needsRender = true;
         }
 
-        // Active Monitor Tracking (Follow Mouse)
-        if (g_settings.targetMonitor == -1) {
-            static HMONITOR s_lastMonitor = nullptr;
-            POINT pt;
-            GetCursorPos(&pt);
-            HMONITOR currentMonitor = MonitorFromPoint(pt, MONITOR_DEFAULTTONEAREST);
-            if (currentMonitor != s_lastMonitor) {
-                s_lastMonitor = currentMonitor;
+        // Active Monitor Tracking & dynamic DPI scaling
+        {
+            HMONITOR currentAnchor = nullptr;
+            GetAnchorWorkRect(&currentAnchor);
+            const float currentDpi = GetMonitorDpiScale(currentAnchor);
+            static HMONITOR s_lastAnchorMon = nullptr;
+            static float s_lastDpi = 0.0f;
+            if (currentAnchor != s_lastAnchorMon || currentDpi != s_lastDpi) {
+                s_lastAnchorMon = currentAnchor;
+                s_lastDpi = currentDpi;
+                std::lock_guard lock(g_settingsMutex);
+                if (g_settings.autoDpiScale) {
+                    g_settings.sizeScale = g_settings.baseSizeScale * currentDpi;
+                } else {
+                    g_settings.sizeScale = g_settings.baseSizeScale;
+                }
                 g_layoutDirty = true;
             }
         }
@@ -23751,9 +24153,14 @@ DWORD WINAPI RenderThreadProc(void*) {
             Settings renderSettings = GetSettingsCopy();
             if (ctrlHoverCT) {
                 renderSettings.pillOpacity = Clamp(renderSettings.pillOpacity * 0.35f, 0.15f, 0.45f);
-            } else if (renderSettings.themePreset == ThemePreset::Graphite && Wh_GetIntValue(L"PillOpacityOverride", -1) < 0) {
+            } else if (renderSettings.themePreset == ThemePreset::Graphite && g_pillOpacityOverride.load() < 0) {
                 const bool isExpanded = isHoverExpanded || pinned || isTransientAlert || (widthSpring.value > 260.0f);
                 renderSettings.pillOpacity = isExpanded ? 0.98f : 0.88f;
+            }
+            // No usable backdrop (old Windows / effects off): keep the solid background.
+            if (renderSettings.backdropMaterial != BackdropMaterial::None &&
+                !DwmBackdrop::Available()) {
+                renderSettings.backdropMaterial = BackdropMaterial::None;
             }
             renderer.Render(snapshot, renderSettings, primary, secondary,
                             widthSpring.value, heightSpring.value, nudgeSpring.value,
@@ -23774,6 +24181,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             wasAutoHiddenParked = true;
             g_autoHiddenParked = true;
             ShowWindow(hwnd, SW_HIDE);
+            DwmBackdrop::HideAll();
             g_audioCaptureNeeded.store(false, std::memory_order_relaxed);
             setHighResTimer(false);
             continue;
@@ -23877,6 +24285,7 @@ DWORD WINAPI RenderThreadProc(void*) {
     setHighResTimer(false);
 
     UnbindVolumeEndpoint();
+    DwmBackdrop::DestroyAll();
     renderer.Shutdown();
     DestroyWindow(hwnd);
     g_hwnd = nullptr;
