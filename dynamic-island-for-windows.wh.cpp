@@ -15128,7 +15128,9 @@ class Renderer {
     // fake it convincingly and cheaply.
     void DrawSoftShadow(D2D1_RECT_F rect, float radius, const Settings& settings) {
         // The island sits on top of the backdrop, so a shadow here would darken the blur.
-        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {            return;        }
+        if (!settings.dropShadow || settings.backdropMaterial != BackdropMaterial::None) {
+            return;
+        }
 
         const float spread = Clamp(14.0f * settings.sizeScale, 6.0f, kRenderPadY - 4.0f);
         const float yOffset = spread * 0.35f;
