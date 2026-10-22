@@ -3872,24 +3872,6 @@ struct SyncFingerprint {
 };
 SyncFingerprint g_lastSync = {};
 
-// Last Sync signature so idle presents that redraw content skip SetWindowPos work.
-struct SyncFingerprint {
-    HWND island = nullptr;
-    POINT origin = {0, 0};
-    int count = 0;
-    int material = -1;
-    DWORD color = 0;
-    int state = -1;
-    bool notch = false;
-    int x[kMaxPills] = {};
-    int y[kMaxPills] = {};
-    int w[kMaxPills] = {};
-    int h[kMaxPills] = {};
-    int radius[kMaxPills] = {};
-    int lift[kMaxPills] = {};
-};
-SyncFingerprint g_lastSync = {};
-
 bool WindowsBuildAtLeast(DWORD build) {
     using RtlGetVersion_t = LONG(WINAPI*)(OSVERSIONINFOW*);
     HMODULE nt = GetModuleHandleW(L"ntdll.dll");
