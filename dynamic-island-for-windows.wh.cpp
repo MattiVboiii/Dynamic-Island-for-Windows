@@ -606,6 +606,7 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <devpropdef.h>
 #include <dbt.h>
 #include <d2d1.h>
+#include <d2derr.h>
 #include <dwrite.h>
 #include <wincodec.h>
 #include <shcore.h>
@@ -643,6 +644,11 @@ We love community contributions! To ensure high-quality updates, please follow t
 #include <utility>
 #include <vector>
 #include <set>
+#ifdef DYNAMIC_ISLAND_CROSS_COMPILE
+#define DYNAMIC_ISLAND_SKIP_OPTIONAL_WINRT 1
+#endif
+
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 #include <winrt/base.h>
 #include <winrt/Windows.Foundation.h>
 #include <winrt/Windows.Foundation.Collections.h>
@@ -668,6 +674,10 @@ We love community contributions! To ensure high-quality updates, please follow t
 #else
 #define DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER 0
 #endif
+#else  // DYNAMIC_ISLAND_CROSS_COMPILE
+#define DYNAMIC_ISLAND_HAS_USER_NOTIFICATION_LISTENER 0
+#define DYNAMIC_ISLAND_HAS_BLUETOOTH_WATCHER 0
+#endif
 
 using Microsoft::WRL::ComPtr;
 using namespace std::chrono_literals;
@@ -684,11 +694,19 @@ constexpr UINT WM_APP_MOUSE_WAKE = WM_APP + 0x446;
 // thread, so hotkey and backdrop changes are posted across and applied there.
 constexpr UINT WM_APP_APPLY_HOTKEY = WM_APP + 0x447;
 constexpr UINT WM_APP_APPLY_BACKDROP = WM_APP + 0x448;
+constexpr UINT kMsgCopyGlobalData = 0x0049;
 constexpr int ID_HIDE_SHOW_HOTKEY = 1;
 constexpr int ID_LOOKUP_HOTKEY = 2;
+constexpr DWORD kWorkerThreadJoinMs = 3000;
 constexpr float kRenderPadX = 28.0f;
 constexpr float kRenderPadY = 22.0f;
 constexpr UINT kClipboardImageThumbMaxDim = 160;  // longer-side cap for the clipboard image thumbnail
+
+namespace PillCornerRadius {
+constexpr float kWindows11 = 8.0f;
+constexpr float kNotch = 16.0f;
+constexpr float kPillCap = 44.0f;
+}
 
 // Layout for the expanded media dashboard. DrawMedia paints every element at an
 // offset from the content rect it is handed, and OverlayWndProc hit-tests in
@@ -1306,6 +1324,17 @@ struct Settings {
     bool gameOverlayCompact = false;
 };
 
+float ComputeIslandCornerRadius(const Settings& settings, float pillHeight) {
+    float radius = settings.w11Style ? PillCornerRadius::kWindows11 * settings.sizeScale
+                                     : pillHeight * 0.5f;
+    if (settings.notchStyle) {
+        radius = PillCornerRadius::kNotch * settings.sizeScale;
+    } else if (!settings.w11Style) {
+        radius = std::min(radius, PillCornerRadius::kPillCap * settings.sizeScale);
+    }
+    return radius;
+}
+
 struct BitmapPixels {
     std::vector<uint8_t> bgra;
     UINT width = 0;
@@ -1717,6 +1746,41 @@ std::mutex g_settingsMutex;
 Settings GetSettingsCopy() {
     std::lock_guard lock(g_settingsMutex);
     return g_settings;
+}
+
+struct ScopedHandle {
+    HANDLE value = nullptr;
+    ScopedHandle() = default;
+    explicit ScopedHandle(HANDLE handle) : value(handle) {}
+    ScopedHandle(const ScopedHandle&) = delete;
+    ScopedHandle& operator=(const ScopedHandle&) = delete;
+    ~ScopedHandle() {
+        if (value) {
+            CloseHandle(value);
+        }
+    }
+    HANDLE release() {
+        HANDLE out = value;
+        value = nullptr;
+        return out;
+    }
+};
+
+void JoinWorkerThread(HANDLE& thread, DWORD timeoutMs = kWorkerThreadJoinMs) {
+    if (!thread) {
+        return;
+    }
+    WaitForSingleObject(thread, timeoutMs);
+    CloseHandle(thread);
+    thread = nullptr;
+}
+
+void CloseSyncEvent(HANDLE& eventHandle) {
+    if (!eventHandle) {
+        return;
+    }
+    CloseHandle(eventHandle);
+    eventHandle = nullptr;
 }
 
 std::mutex g_stateMutex;
@@ -5193,6 +5257,7 @@ PixelsRef FindAppIconByName(const std::wstring& appName, UINT size) {
     return pixels;
 }
 
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 std::vector<uint8_t> ReadWinRtStreamBytes(
     const winrt::Windows::Storage::Streams::IRandomAccessStreamReference& reference) {
     std::vector<uint8_t> bytes;
@@ -5217,6 +5282,7 @@ std::vector<uint8_t> ReadWinRtStreamBytes(
     reader.ReadBytes(winrt::array_view<uint8_t>(bytes.data(), bytes.data() + bytes.size()));
     return bytes;
 }
+#endif  // !DYNAMIC_ISLAND_CROSS_COMPILE
 
 void TriggerNudge() {
     // If we're parked (auto-hidden), any real event must wake us regardless
@@ -5244,6 +5310,7 @@ void TriggerNudge() {
 // while Spotify worked. Prefer the current session when it is actually playing,
 // otherwise the first session that is, and only then fall back to the current
 // one so paused/idle state still shows.
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 winrt::Windows::Media::Control::GlobalSystemMediaTransportControlsSession SelectActiveMediaSession(
     winrt::Windows::Media::Control::GlobalSystemMediaTransportControlsSessionManager const& manager,
     const std::wstring& preferredAumid) {
@@ -5902,6 +5969,16 @@ DWORD WINAPI MediaThreadProc(void*) {
     winrt::uninit_apartment();
     return 0;
 }
+
+#else  // DYNAMIC_ISLAND_CROSS_COMPILE
+
+DWORD WINAPI MediaThreadProc(void*) {
+    while (WaitForSingleObject(g_stopEvent, INFINITE) == WAIT_TIMEOUT) {
+    }
+    return 0;
+}
+
+#endif  // DYNAMIC_ISLAND_CROSS_COMPILE
 
 typedef LONG NTSTATUS;
 typedef NTSTATUS (NTAPI *PWNF_USER_CALLBACK)(
@@ -12768,6 +12845,7 @@ void ToggleEndpointMute() {
 }
 
 // Shared by the scrubber's live drag updates and its on-release commit.
+#if !defined(DYNAMIC_ISLAND_CROSS_COMPILE)
 void SeekMediaToTicks(int64_t targetTicks) {
     std::thread([targetTicks]() {
         winrt::init_apartment(winrt::apartment_type::multi_threaded);
@@ -12880,6 +12958,13 @@ void SendMediaTransportCommand(int cmd) {
         }
     }).detach();
 }
+
+#else  // DYNAMIC_ISLAND_CROSS_COMPILE
+
+void SeekMediaToTicks(int64_t /*targetTicks*/) {}
+void SendMediaTransportCommand(int /*cmd*/) {}
+
+#endif  // DYNAMIC_ISLAND_CROSS_COMPILE
 
 struct WindowSearch {
     std::wstring targetTitle;
@@ -13682,14 +13767,7 @@ class Renderer {
             return false;
         }
 
-        D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
-            D2D1_RENDER_TARGET_TYPE_DEFAULT,
-            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
-            0.0f, 0.0f,
-            D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
-
-        hr = d2dFactory_->CreateDCRenderTarget(&props, &target_);
-        if (FAILED(hr)) {
+        if (!EnsureD2RenderTarget()) {
             return false;
         }
 
@@ -13705,6 +13783,10 @@ class Renderer {
                 const std::optional<Activity>& tertiary, float width, float height,
                 float nudge, bool hover, bool pinned, double now,
                 bool combineClosing = false) {
+        if (!EnsureD2RenderTarget()) {
+            return false;
+        }
+
         EnsureTextFormats(settings.sizeScale, settings.fontFamily, settings.textScale);
 
         width = std::max(width, 0.0f);
@@ -13771,6 +13853,11 @@ class Renderer {
         // coordinates, and every draw routine composes with the current transform.
         RECT rc = dirty;
         HRESULT hr = target_->BindDC(memDc_, &rc);
+        if (hr == D2DERR_RECREATE_TARGET) {
+            DropTargetBoundResources();
+            EnsureD2RenderTarget();
+            return false;
+        }
         if (FAILED(hr)) {
             return false;
         }
@@ -13850,18 +13937,10 @@ class Renderer {
                 const D2D1_RECT_F islandRect =
                     D2D1::RectF(left, islandTop, left + width, islandTop + height);
 
-                float radius = settings.w11Style ? 8.0f * settings.sizeScale
-                                                 : (islandRect.bottom - islandRect.top) * 0.5f;
-                if (settings.notchStyle) {
-                    radius = 16.0f * settings.sizeScale;
-                } else if (!settings.w11Style) {
-                    radius = std::min(radius, 44.0f * settings.sizeScale);
-                }
-                if (pillCount_ < DwmBackdrop::kMaxPills) {
-                    pillRects_[pillCount_] = islandRect;
-                    pillRadii_[pillCount_] = radius;
-                    ++pillCount_;
-                }                DrawSoftShadow(islandRect, radius, settings);
+                const float radius =
+                    ComputeIslandCornerRadius(settings, islandRect.bottom - islandRect.top);
+                RegisterBackdropPill(islandRect, radius);
+                DrawSoftShadow(islandRect, radius, settings);
                 IslandKind chromeKind = primary.kind;
                 for (int i = 0; i < n; ++i) {
                     if (bays[i]->kind == IslandKind::Media) {
@@ -13920,18 +13999,10 @@ class Renderer {
                     width > primary.width + 2.0f) {
                     const D2D1_RECT_F islandRect =
                         D2D1::RectF(left, top, left + width, top + height);
-                    float radius = settings.w11Style ? 8.0f * settings.sizeScale
-                                                     : (islandRect.bottom - islandRect.top) * 0.5f;
-                    if (settings.notchStyle) {
-                        radius = 16.0f * settings.sizeScale;
-                    } else if (!settings.w11Style) {
-                        radius = std::min(radius, 44.0f * settings.sizeScale);
-                    }
-                    if (pillCount_ < DwmBackdrop::kMaxPills) {
-                        pillRects_[pillCount_] = islandRect;
-                        pillRadii_[pillCount_] = radius;
-                        ++pillCount_;
-                    }                    DrawSoftShadow(islandRect, radius, settings);
+                    const float radius =
+                        ComputeIslandCornerRadius(settings, islandRect.bottom - islandRect.top);
+                    RegisterBackdropPill(islandRect, radius);
+                    DrawSoftShadow(islandRect, radius, settings);
                     DrawPillSurface(islandRect, radius, IslandKind::Media, settings);
 
                     const float mediaW = primary.width;
@@ -13948,6 +14019,11 @@ class Renderer {
 
         target_->PopAxisAlignedClip();
         hr = target_->EndDraw();
+        if (hr == D2DERR_RECREATE_TARGET) {
+            DropTargetBoundResources();
+            EnsureD2RenderTarget();
+            return false;
+        }
         if (FAILED(hr)) {
             stageValid_ = false;
             return false;
@@ -14022,9 +14098,6 @@ class Renderer {
         camDotBrush_.Reset();
         camGlowBrush_.Reset();
         weatherDescFormat_.Reset();
-        micGlowBrush_.Reset();
-        camDotBrush_.Reset();
-        camGlowBrush_.Reset();
         target_.Reset();
         textFormat_.Reset();
         smallTextFormat_.Reset();
@@ -14752,6 +14825,46 @@ class Renderer {
         for (ShapeEntry& e : shapeCache_) e = ShapeEntry{};
     }
 
+    void RegisterBackdropPill(D2D1_RECT_F rect, float radius) {
+        if (pillCount_ >= DwmBackdrop::kMaxPills) {
+            return;
+        }
+        pillRects_[pillCount_] = rect;
+        pillRadii_[pillCount_] = radius;
+        ++pillCount_;
+    }
+
+    bool EnsureD2RenderTarget() {
+        if (target_) {
+            return true;
+        }
+        if (!d2dFactory_) {
+            return false;
+        }
+        const D2D1_RENDER_TARGET_PROPERTIES props = D2D1::RenderTargetProperties(
+            D2D1_RENDER_TARGET_TYPE_DEFAULT,
+            D2D1::PixelFormat(DXGI_FORMAT_B8G8R8A8_UNORM, D2D1_ALPHA_MODE_PREMULTIPLIED),
+            0.0f, 0.0f, D2D1_RENDER_TARGET_USAGE_GDI_COMPATIBLE);
+        return SUCCEEDED(d2dFactory_->CreateDCRenderTarget(&props, &target_));
+    }
+
+    void DropTargetBoundResources() {
+        ReleaseCachedResources();
+        accentBrush_.Reset();
+        redBrush_.Reset();
+        textBrush_.Reset();
+        mutedBrush_.Reset();
+        tintBrush_.Reset();
+        shadowBrush_.Reset();
+        micDotBrush_.Reset();
+        micGlowBrush_.Reset();
+        camDotBrush_.Reset();
+        camGlowBrush_.Reset();
+        scratchColorBrush_.Reset();
+        target_.Reset();
+        stageValid_ = false;
+    }
+
     void BuildMaterialTokens(const Settings& settings) {
         MaterialTokens t;
         t.opacity = settingsOpacity_;
@@ -14796,18 +14909,11 @@ class Renderer {
         const float h = (rect.bottom - rect.top) * scale;
         rect = D2D1::RectF(cx - w * 0.5f, cy - h * 0.5f, cx + w * 0.5f, cy + h * 0.5f);
 
-        float radius = settings.w11Style ? 8.0f * settings.sizeScale : (rect.bottom - rect.top) * 0.5f;
-        if (settings.notchStyle) {
-            radius = 16.0f * settings.sizeScale;
-        } else if (!settings.w11Style) {
-            radius = std::min(radius, 44.0f * settings.sizeScale);
-        }
+        const float radius = ComputeIslandCornerRadius(settings, rect.bottom - rect.top);
         // Only the chrome silhouette owns a backdrop slot. Content-only DrawPill
         // calls (combined bays) must not register sub-rects or the blur fragments.
-        if (drawChrome && pillCount_ < DwmBackdrop::kMaxPills) {
-            pillRects_[pillCount_] = rect;
-            pillRadii_[pillCount_] = radius;
-            ++pillCount_;
+        if (drawChrome) {
+            RegisterBackdropPill(rect, radius);
         }
 
         if (drawChrome) {
@@ -18035,7 +18141,7 @@ class Renderer {
                 }
 
                 auto FormatTime = [](double seconds) -> std::wstring {
-                    if (seconds <= 0.0 || _isnan(seconds)) return L"0:00";
+                    if (seconds <= 0.0 || std::isnan(seconds)) return L"0:00";
                     int m = static_cast<int>(seconds) / 60;
                     int s = static_cast<int>(seconds) % 60;
                     wchar_t buf[16];
@@ -24041,114 +24147,152 @@ bool OverlayWantsHandCursor(POINT clientPt) {
     return false;
 }
 
-LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
-    static POINT s_touchStart = {0, 0};
-    static ULONGLONG s_touchStartTime = 0;
-    static bool s_trayPressActive = false;   // left button went down on a File Tray row
-    static POINT s_trayPressPt = {0, 0};
-    static std::wstring s_trayPressPath;
-    switch (msg) {
-        case WM_CREATE:
-            AddClipboardFormatListener(hwnd);
-            if (g_shellHookMessage == 0) g_shellHookMessage = RegisterWindowMessageW(L"SHELLHOOK");
-            if (g_taskbarCreatedMessage == 0) g_taskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
-            RegisterShellHookWindow(hwnd);
-            // File Tray (#33). An OLE drop target (instead of DragAcceptFiles) so the
-            // island can react while a drag is still hovering. The module being off is
-            // handled inside TrayDropTarget::DragEnter.
-            {
-                g_oleInitialized = SUCCEEDED(OleInitialize(nullptr));
-                ComPtr<IDropTarget> dropTarget;
-                dropTarget.Attach(new TrayDropTarget());
-                const HRESULT dropHr = RegisterDragDrop(hwnd, dropTarget.Get());
-                if (FAILED(dropHr)) {
-                    Wh_Log(L"RegisterDragDrop failed (0x%08X).", static_cast<unsigned>(dropHr));
-                }
-            }
-            return 0;
+struct OverlayPointerState {
+    POINT touchStart = {};
+    ULONGLONG touchStartTime = 0;
+    bool trayPressActive = false;
+    POINT trayPressPt = {};
+    std::wstring trayPressPath;
+};
 
-        case WM_DROPFILES: {
-            HDROP drop = reinterpret_cast<HDROP>(wParam);
-            if (!g_settings.fileTrayModule) {
-                DragFinish(drop);
-                return 0;
-            }
+void OverlayOnCreate(HWND hwnd) {
+    AddClipboardFormatListener(hwnd);
+    if (g_shellHookMessage == 0) {
+        g_shellHookMessage = RegisterWindowMessageW(L"SHELLHOOK");
+    }
+    if (g_taskbarCreatedMessage == 0) {
+        g_taskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
+    }
+    RegisterShellHookWindow(hwnd);
+    g_oleInitialized = SUCCEEDED(OleInitialize(nullptr));
+    ComPtr<IDropTarget> dropTarget;
+    dropTarget.Attach(new TrayDropTarget());
+    const HRESULT dropHr = RegisterDragDrop(hwnd, dropTarget.Get());
+    if (FAILED(dropHr)) {
+        Wh_Log(L"RegisterDragDrop failed (0x%08X).", static_cast<unsigned>(dropHr));
+    }
+}
 
-            const UINT count = DragQueryFileW(drop, 0xFFFFFFFF, nullptr, 0);
-            std::vector<FileTrayItem> added;
-            added.reserve(count);
+void OverlayOnDestroy(HWND hwnd) {
+    RevokeDragDrop(hwnd);
+    if (g_oleInitialized) {
+        OleUninitialize();
+        g_oleInitialized = false;
+    }
+    RemoveClipboardFormatListener(hwnd);
+    DeregisterShellHookWindow(hwnd);
+}
 
-            for (UINT i = 0; i < count; ++i) {
-                wchar_t path[MAX_PATH] = {};
-                if (DragQueryFileW(drop, i, path, ARRAYSIZE(path)) == 0) {
-                    continue;
-                }
+LRESULT OverlayOnDropFiles(HDROP drop) {
+    if (!g_settings.fileTrayModule) {
+        DragFinish(drop);
+        return 0;
+    }
 
-                FileTrayItem item;
-                item.path = path;
+    const UINT count = DragQueryFileW(drop, 0xFFFFFFFF, nullptr, 0);
+    std::vector<FileTrayItem> added;
+    added.reserve(count);
 
-                // BaseNameFromPath instead of PathFindFileNameW so we do not
-                // pull in shlwapi just for this.
-                item.name = BaseNameFromPath(path);
-                if (item.name.empty()) {
-                    item.name = path;
-                }
-
-                WIN32_FILE_ATTRIBUTE_DATA attr = {};
-                if (GetFileAttributesExW(path, GetFileExInfoStandard, &attr)) {
-                    item.isDirectory = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
-                    item.sizeBytes = (static_cast<uint64_t>(attr.nFileSizeHigh) << 32) | attr.nFileSizeLow;
-                }
-
-                // Grab the real Explorer icon so the shelf looks native.
-                SHFILEINFOW info = {};
-                if (SHGetFileInfoW(path, 0, &info, sizeof(info), SHGFI_ICON | SHGFI_SMALLICON) && info.hIcon) {
-                    item.icon = IconToPixelsRef(info.hIcon, 32);
-                    DestroyIcon(info.hIcon);
-                }
-
-                added.push_back(std::move(item));
-            }
-            DragFinish(drop);
-
-            if (!added.empty()) {
-                std::lock_guard lock(g_stateMutex);
-                for (auto& item : added) {
-                    // Re-dropping a file promotes the existing entry instead of
-                    // creating a duplicate.
-                    auto existing = std::find_if(g_state.fileTrayItems.begin(), g_state.fileTrayItems.end(),
-                                                 [&](const FileTrayItem& other) {
-                                                     return _wcsicmp(other.path.c_str(), item.path.c_str()) == 0;
-                                                 });
-                    if (existing != g_state.fileTrayItems.end()) {
-                        g_state.fileTrayItems.erase(existing);
-                    }
-                    g_state.fileTrayItems.push_back(std::move(item));
-                }
-
-                const size_t cap = static_cast<size_t>(std::max(1, g_settings.fileTrayMaxItems));
-                while (g_state.fileTrayItems.size() > cap) {
-                    g_state.fileTrayItems.erase(g_state.fileTrayItems.begin());
-                }
-            }
-
-            // Jump to the shelf so the drop is visibly acknowledged.
-            const int trayTab = FileTrayTabIndex(g_settings);
-            if (trayTab >= 0) {
-                g_idleTab = trayTab;
-            }
-            g_layoutDirty = true;
-            return 0;
+    for (UINT i = 0; i < count; ++i) {
+        wchar_t path[MAX_PATH] = {};
+        if (DragQueryFileW(drop, i, path, ARRAYSIZE(path)) == 0) {
+            continue;
         }
 
-        case WM_DESTROY:
-            RevokeDragDrop(hwnd);
-            if (g_oleInitialized) {
-                OleUninitialize();
-                g_oleInitialized = false;
+        FileTrayItem item;
+        item.path = path;
+        item.name = BaseNameFromPath(path);
+        if (item.name.empty()) {
+            item.name = path;
+        }
+
+        WIN32_FILE_ATTRIBUTE_DATA attr = {};
+        if (GetFileAttributesExW(path, GetFileExInfoStandard, &attr)) {
+            item.isDirectory = (attr.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0;
+            item.sizeBytes = (static_cast<uint64_t>(attr.nFileSizeHigh) << 32) | attr.nFileSizeLow;
+        }
+
+        SHFILEINFOW info = {};
+        if (SHGetFileInfoW(path, 0, &info, sizeof(info), SHGFI_ICON | SHGFI_SMALLICON) && info.hIcon) {
+            item.icon = IconToPixelsRef(info.hIcon, 32);
+            DestroyIcon(info.hIcon);
+        }
+
+        added.push_back(std::move(item));
+    }
+    DragFinish(drop);
+
+    if (!added.empty()) {
+        std::lock_guard lock(g_stateMutex);
+        for (auto& item : added) {
+            auto existing = std::find_if(g_state.fileTrayItems.begin(), g_state.fileTrayItems.end(),
+                                         [&](const FileTrayItem& other) {
+                                             return _wcsicmp(other.path.c_str(), item.path.c_str()) == 0;
+                                         });
+            if (existing != g_state.fileTrayItems.end()) {
+                g_state.fileTrayItems.erase(existing);
             }
-            RemoveClipboardFormatListener(hwnd);
-            DeregisterShellHookWindow(hwnd);
+            g_state.fileTrayItems.push_back(std::move(item));
+        }
+
+        const size_t cap = static_cast<size_t>(std::max(1, g_settings.fileTrayMaxItems));
+        while (g_state.fileTrayItems.size() > cap) {
+            g_state.fileTrayItems.erase(g_state.fileTrayItems.begin());
+        }
+    }
+
+    const int trayTab = FileTrayTabIndex(g_settings);
+    if (trayTab >= 0) {
+        g_idleTab = trayTab;
+    }
+    g_layoutDirty = true;
+    return 0;
+}
+
+void RegisterOverlayShellMessageFilters(HWND hwnd) {
+    using ChangeWindowMessageFilterEx_t = BOOL(WINAPI*)(HWND, UINT, DWORD, PVOID);
+    static auto pChangeWindowMessageFilterEx = reinterpret_cast<ChangeWindowMessageFilterEx_t>(
+        GetProcAddress(GetModuleHandleW(L"user32.dll"), "ChangeWindowMessageFilterEx"));
+    if (pChangeWindowMessageFilterEx) {
+        if (g_shellHookMessage) {
+            pChangeWindowMessageFilterEx(hwnd, g_shellHookMessage, 1 /*MSGFLT_ALLOW*/, nullptr);
+        }
+        if (g_taskbarCreatedMessage) {
+            pChangeWindowMessageFilterEx(hwnd, g_taskbarCreatedMessage, 1 /*MSGFLT_ALLOW*/, nullptr);
+        }
+        pChangeWindowMessageFilterEx(hwnd, WM_COPYDATA, 1 /*MSGFLT_ALLOW*/, nullptr);
+        pChangeWindowMessageFilterEx(hwnd, kMsgCopyGlobalData, 1 /*MSGFLT_ALLOW*/, nullptr);
+        return;
+    }
+
+    using ChangeWindowMessageFilter_t = BOOL(WINAPI*)(UINT, DWORD);
+    static auto pChangeWindowMessageFilter = reinterpret_cast<ChangeWindowMessageFilter_t>(
+        GetProcAddress(GetModuleHandleW(L"user32.dll"), "ChangeWindowMessageFilter"));
+    if (!pChangeWindowMessageFilter) {
+        return;
+    }
+    if (g_shellHookMessage) {
+        pChangeWindowMessageFilter(g_shellHookMessage, 1 /*MSGFLT_ADD*/);
+    }
+    if (g_taskbarCreatedMessage) {
+        pChangeWindowMessageFilter(g_taskbarCreatedMessage, 1 /*MSGFLT_ADD*/);
+    }
+    pChangeWindowMessageFilter(WM_COPYDATA, 1 /*MSGFLT_ADD*/);
+    pChangeWindowMessageFilter(kMsgCopyGlobalData, 1 /*MSGFLT_ADD*/);
+}
+
+LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lParam) {
+    static OverlayPointerState s_pointer;
+    switch (msg) {
+        case WM_CREATE:
+            OverlayOnCreate(hwnd);
+            return 0;
+
+        case WM_DROPFILES:
+            return OverlayOnDropFiles(reinterpret_cast<HDROP>(wParam));
+
+        case WM_DESTROY:
+            OverlayOnDestroy(hwnd);
             return 0;
 
         // Both of these touch the window from the thread that owns it, the only
@@ -24317,18 +24461,18 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 int xPos = GET_X_LPARAM(lParam);
                 int yPos = GET_Y_LPARAM(lParam);
 
-                s_touchStart.x = xPos;
-                s_touchStart.y = yPos;
-                s_touchStartTime = GetTickCount64();
+                s_pointer.touchStart.x = xPos;
+                s_pointer.touchStart.y = yPos;
+                s_pointer.touchStartTime = GetTickCount64();
 
                 if (g_lookupUi.open) {
-                    s_trayPressActive = false;
+                    s_pointer.trayPressActive = false;
                     return 0;  // handled on button-up by HandleLookupClick
                 }
 
                 // File Tray: remember a press on a row so moving the mouse picks it up
                 // for dragging, while a plain click still opens it.
-                s_trayPressActive = false;
+                s_pointer.trayPressActive = false;
                 if (g_settings.fileTrayModule &&
                     NormalizedTabIndex(g_settings) == FileTrayTabIndex(g_settings)) {
                     const MediaContentPoint tcp = MediaContentFromClient(xPos, yPos);
@@ -24336,10 +24480,10 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                     const int count = static_cast<int>(g_state.fileTrayItems.size());
                     const int row = FileTrayRowAtContentPoint(tcp, count);
                     if (row >= 0 && !FileTrayRemoveHitTest(tcp, row)) {
-                        s_trayPressActive = true;
-                        s_trayPressPt.x = xPos;
-                        s_trayPressPt.y = yPos;
-                        s_trayPressPath =
+                        s_pointer.trayPressActive = true;
+                        s_pointer.trayPressPt.x = xPos;
+                        s_pointer.trayPressPt.y = yPos;
+                        s_pointer.trayPressPath =
                             g_state.fileTrayItems[static_cast<size_t>(count - 1 - row)].path;
                     }
                 }
@@ -24495,13 +24639,13 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             }
 
             // Pressed on a row and moved past the system drag threshold: pick the file up.
-            if (s_trayPressActive) {
+            if (s_pointer.trayPressActive) {
                 if (!(wParam & MK_LBUTTON)) {
-                    s_trayPressActive = false;
-                } else if (abs(xPos - s_trayPressPt.x) >= GetSystemMetrics(SM_CXDRAG) ||
-                           abs(yPos - s_trayPressPt.y) >= GetSystemMetrics(SM_CYDRAG)) {
-                    s_trayPressActive = false;
-                    const std::wstring dragPath = s_trayPressPath;
+                    s_pointer.trayPressActive = false;
+                } else if (abs(xPos - s_pointer.trayPressPt.x) >= GetSystemMetrics(SM_CXDRAG) ||
+                           abs(yPos - s_pointer.trayPressPt.y) >= GetSystemMetrics(SM_CYDRAG)) {
+                    s_pointer.trayPressActive = false;
+                    const std::wstring dragPath = s_pointer.trayPressPath;
                     StartFileTrayDrag(dragPath);
                     return 0;
                 }
@@ -24519,7 +24663,7 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
             if (g_hoveredLyricsBtn.exchange(false)) {
                 g_layoutDirty = true;
             }
-            s_trayPressActive = false;
+            s_pointer.trayPressActive = false;
             if (g_hoveredFileTrayRow.exchange(-1) != -1) {
                 g_layoutDirty = true;
             }
@@ -24578,20 +24722,20 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 int yPos = GET_Y_LPARAM(lParam);
 
                 ULONGLONG now = GetTickCount64();
-                if (s_touchStartTime > 0 && (now - s_touchStartTime) < 500) {
-                    const int dx = xPos - s_touchStart.x;
-                    const int dy = yPos - s_touchStart.y;
+                if (s_pointer.touchStartTime > 0 && (now - s_pointer.touchStartTime) < 500) {
+                    const int dx = xPos - s_pointer.touchStart.x;
+                    const int dy = yPos - s_pointer.touchStart.y;
                     const int travel = abs(dy) > abs(dx) ? dy : dx;  // dominant axis wins
                     if (abs(travel) > 40) {
                         // Swipe up / left -> next tab, down / right -> previous tab
                         if (ActiveTabCount(GetSettingsCopy()) > 1) {
                             StepIdleTab(travel > 0 ? -1 : 1);
                         }
-                        s_touchStartTime = 0;
+                        s_pointer.touchStartTime = 0;
                         return 0; // Consume swipe gesture
                     }
                 }
-                s_touchStartTime = 0;
+                s_pointer.touchStartTime = 0;
 
                 {
                     // Status card only — click focuses Discord.
@@ -24635,8 +24779,8 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
                 // and a plain click on a row opens it with its default app. (Dragging a
                 // row out is started from WM_MOUSEMOVE.)
                 if (g_settings.fileTrayModule && currentTab == FileTrayTabIndex(g_settings)) {
-                    const bool wasPressed = s_trayPressActive;
-                    s_trayPressActive = false;
+                    const bool wasPressed = s_pointer.trayPressActive;
+                    s_pointer.trayPressActive = false;
 
                     if (FileTrayPasteHitTest(cp)) {
                         PasteIntoFileTray(hwnd);
@@ -24872,8 +25016,86 @@ LRESULT CALLBACK OverlayWndProc(HWND hwnd, UINT msg, WPARAM wParam, LPARAM lPara
     return DefWindowProcW(hwnd, msg, wParam, lParam);
 }
 
+struct CoInitializeScope {
+    HRESULT hr = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    ~CoInitializeScope() {
+        if (SUCCEEDED(hr)) {
+            CoUninitialize();
+        }
+    }
+};
+
+// Requests 1 ms timer resolution only while springs or tab transitions are active.
+struct HighResTimerGate {
+    using TimeBeginPeriod_t = MMRESULT(WINAPI*)(UINT);
+    using TimeEndPeriod_t = MMRESULT(WINAPI*)(UINT);
+
+    TimeBeginPeriod_t beginPeriod = nullptr;
+    TimeEndPeriod_t endPeriod = nullptr;
+    bool active = false;
+    double lastAnimatingAt = -1.0;
+
+    explicit HighResTimerGate() {
+        beginPeriod = reinterpret_cast<TimeBeginPeriod_t>(
+            GetProcAddress(LoadLibraryW(L"winmm.dll"), "timeBeginPeriod"));
+        endPeriod = reinterpret_cast<TimeEndPeriod_t>(
+            GetProcAddress(GetModuleHandleW(L"winmm.dll"), "timeEndPeriod"));
+    }
+
+    ~HighResTimerGate() {
+        set(false);
+    }
+
+    void set(bool want) {
+        if (want == active) {
+            return;
+        }
+        if (want) {
+            if (beginPeriod && beginPeriod(1) == TIMERR_NOERROR) {
+                active = true;
+            }
+        } else if (endPeriod) {
+            endPeriod(1);
+            active = false;
+        }
+    }
+
+    void update(bool animating, double now, double holdSec) {
+        if (animating) {
+            lastAnimatingAt = now;
+        }
+        set(lastAnimatingAt >= 0.0 && now - lastAnimatingAt < holdSec);
+    }
+};
+
+struct RenderPollSchedule {
+    double battery = 0.0;
+    double progress = 0.0;
+    double system = 0.0;
+    double brightness = 0.0;
+    double privacy = 0.0;
+};
+
+bool PumpRenderThreadMessages(SpringValue& nudgeSpring, double& lastInteractionTime) {
+    bool nudged = false;
+    MSG message = {};
+    while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
+        if (message.message == WM_APP_NEW_EVENT) {
+            nudgeSpring.value = -6.0f;
+            nudgeSpring.velocity = 0.0f;
+            nudgeSpring.target = 0.0f;
+            lastInteractionTime = NowSeconds();
+            nudged = true;
+            continue;
+        }
+        TranslateMessage(&message);
+        DispatchMessageW(&message);
+    }
+    return nudged;
+}
+
 DWORD WINAPI RenderThreadProc(void*) {
-    HRESULT hrCo = CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED);
+    const CoInitializeScope comApartment;
 
     WNDCLASSEXW wc = {};
     wc.cbSize = sizeof(wc);
@@ -24890,34 +25112,17 @@ DWORD WINAPI RenderThreadProc(void*) {
 
     if (!hwnd) {
         Wh_Log(L"Failed to create Dynamic Island overlay window.");
-        if (SUCCEEDED(hrCo)) {
-            CoUninitialize();
-        }
         return 0;
     }
 
     g_hwnd = hwnd;
-    if (g_shellHookMessage == 0) g_shellHookMessage = RegisterWindowMessageW(L"SHELLHOOK");
-    if (g_taskbarCreatedMessage == 0) g_taskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
-    using ChangeWindowMessageFilterEx_t = BOOL(WINAPI*)(HWND, UINT, DWORD, PVOID);
-    static auto pChangeWindowMessageFilterEx = reinterpret_cast<ChangeWindowMessageFilterEx_t>(
-        GetProcAddress(GetModuleHandleW(L"user32.dll"), "ChangeWindowMessageFilterEx"));
-    if (pChangeWindowMessageFilterEx) {
-        if (g_shellHookMessage) pChangeWindowMessageFilterEx(hwnd, g_shellHookMessage, 1 /*MSGFLT_ALLOW*/, nullptr);
-        if (g_taskbarCreatedMessage) pChangeWindowMessageFilterEx(hwnd, g_taskbarCreatedMessage, 1 /*MSGFLT_ALLOW*/, nullptr);
-        pChangeWindowMessageFilterEx(hwnd, WM_COPYDATA, 1 /*MSGFLT_ALLOW*/, nullptr);
-        pChangeWindowMessageFilterEx(hwnd, 0x0049 /*WM_COPYGLOBALDATA*/, 1 /*MSGFLT_ALLOW*/, nullptr);
-    } else {
-        using ChangeWindowMessageFilter_t = BOOL(WINAPI*)(UINT, DWORD);
-        static auto pChangeWindowMessageFilter = reinterpret_cast<ChangeWindowMessageFilter_t>(
-            GetProcAddress(GetModuleHandleW(L"user32.dll"), "ChangeWindowMessageFilter"));
-        if (pChangeWindowMessageFilter) {
-            if (g_shellHookMessage) pChangeWindowMessageFilter(g_shellHookMessage, 1 /*MSGFLT_ADD*/);
-            if (g_taskbarCreatedMessage) pChangeWindowMessageFilter(g_taskbarCreatedMessage, 1 /*MSGFLT_ADD*/);
-            pChangeWindowMessageFilter(WM_COPYDATA, 1 /*MSGFLT_ADD*/);
-            pChangeWindowMessageFilter(0x0049 /*WM_COPYGLOBALDATA*/, 1 /*MSGFLT_ADD*/);
-        }
+    if (g_shellHookMessage == 0) {
+        g_shellHookMessage = RegisterWindowMessageW(L"SHELLHOOK");
     }
+    if (g_taskbarCreatedMessage == 0) {
+        g_taskbarCreatedMessage = RegisterWindowMessageW(L"TaskbarCreated");
+    }
+    RegisterOverlayShellMessageFilters(hwnd);
     EnableBlurBehind(hwnd);
     ApplyBackdropMaterial(hwnd);
     ApplyHideShowHotkey();
@@ -24934,9 +25139,6 @@ DWORD WINAPI RenderThreadProc(void*) {
     if (!renderer.Initialize(hwnd)) {
         DestroyWindow(hwnd);
         g_hwnd = nullptr;
-        if (SUCCEEDED(hrCo)) {
-            CoUninitialize();
-        }
         return 0;
     }
 
@@ -24944,50 +25146,8 @@ DWORD WINAPI RenderThreadProc(void*) {
     // COM apartment this thread already initialised.
     LoadFileTray();
 
-    using TimeBeginPeriod_t = MMRESULT(WINAPI*)(UINT);
-    using TimeEndPeriod_t = MMRESULT(WINAPI*)(UINT);
-    static auto pTimeBeginPeriod = reinterpret_cast<TimeBeginPeriod_t>(
-        GetProcAddress(LoadLibraryW(L"winmm.dll"), "timeBeginPeriod"));
-    static auto pTimeEndPeriod = reinterpret_cast<TimeEndPeriod_t>(
-        GetProcAddress(GetModuleHandleW(L"winmm.dll"), "timeEndPeriod"));
-
-    // A 1ms timer resolution costs power, so it is requested only while the island
-    // is actually animating. It used to be requested once here and released at
-    // shutdown, so a parked or idle island held it for the mod's whole lifetime.
-    //
-    // Since Windows 10 2004 this affects only the calling process's timers rather
-    // than the system clock globally, but the power cost is the reason to scope it
-    // either way.
-    //
-    // The flag is only set when timeBeginPeriod actually succeeded, so the
-    // begin/end pairs stay balanced -- these calls are reference counted per
-    // process, and an unmatched timeEndPeriod would decrement someone else's
-    // request.
-    bool highResTimer = false;
-
-    // How long the resolution is held after animation stops. Long enough to ride
-    // out the gaps between 60Hz content frames and brief pauses between spring
-    // animations without flapping, short enough that a settled island gives it back
-    // promptly. A plain local rather than a static, so an unload/reload cycle cannot
-    // carry a stale timestamp across.
     constexpr double kHighResTimerHoldSec = 0.5;
-    double lastAnimatingAt = -1.0;
-
-    auto setHighResTimer = [&](bool want) {
-        if (want == highResTimer) {
-            return;
-        }
-        if (want) {
-            if (pTimeBeginPeriod && pTimeBeginPeriod(1) == TIMERR_NOERROR) {
-                highResTimer = true;
-            }
-        } else {
-            if (pTimeEndPeriod) {
-                pTimeEndPeriod(1);
-            }
-            highResTimer = false;
-        }
-    };
+    HighResTimerGate highResTimer;
 
     SpringValue widthSpring;
     SpringValue heightSpring;
@@ -25000,29 +25160,14 @@ DWORD WINAPI RenderThreadProc(void*) {
     IslandKind previousPrimary = IslandKind::Idle;
     auto previousFrame = std::chrono::steady_clock::now();
     auto nextFrameTarget = previousFrame;
-    double nextBatteryPoll = 0.0;
-    double nextProgressPoll = 0.0;
-    double nextSystemPoll = 0.0;
-    double nextBrightnessPoll = 0.0;
-    double nextPrivacyPoll = 0.0;
+    RenderPollSchedule polls{};
     bool wasManuallyHidden = false;
     bool wasAutoHiddenParked = false;
     bool parkedForFullscreen = false;
 
     static double lastInteractionTime = NowSeconds();
     while (WaitForSingleObject(g_stopEvent, 0) == WAIT_TIMEOUT) {
-        MSG message = {};
-        while (PeekMessageW(&message, nullptr, 0, 0, PM_REMOVE)) {
-            if (message.message == WM_APP_NEW_EVENT) {
-                nudgeSpring.value = -6.0f;
-                nudgeSpring.velocity = 0.0f;
-                nudgeSpring.target = 0.0f;
-                lastInteractionTime = NowSeconds();
-                continue;
-            }
-            TranslateMessage(&message);
-            DispatchMessageW(&message);
-        }
+        PumpRenderThreadMessages(nudgeSpring, lastInteractionTime);
 
         BindVolumeEndpoint();
 
@@ -25051,7 +25196,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             // event or a posted/queued message (hotkey, settings change,
             // clipboard update, etc.) wakes this thread while hidden. Nothing
             // is being paced, so give the system timer resolution back.
-            setHighResTimer(false);
+            highResTimer.set(false);
             MsgWaitForMultipleObjects(1, &g_stopEvent, FALSE, INFINITE, QS_ALLINPUT);
             nextFrameTarget = std::chrono::steady_clock::now();
             continue;
@@ -25075,7 +25220,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             } else {
                 previousFrame = std::chrono::steady_clock::now();
                 // Auto-parked, so nothing is animating; same reasoning as above.
-                setHighResTimer(false);
+                highResTimer.set(false);
                 if (parkedForFullscreen) {
                     MsgWaitForMultipleObjects(1, &g_stopEvent, FALSE, 1500, QS_ALLINPUT);
                     const bool stillFullscreen =
@@ -25141,18 +25286,18 @@ DWORD WINAPI RenderThreadProc(void*) {
             std::fabs(widthSpring.velocity) > 0.5f ||
             std::fabs(heightSpring.velocity) > 0.5f;
         const bool pollBusy = tabBusy || springBusy;
-        if (now >= nextBatteryPoll) {
+        if (now >= polls.battery) {
             UpdateBatterySnapshot();
-            nextBatteryPoll = now + 15.0;
+            polls.battery = now + 15.0;
         }
-        if (now >= nextProgressPoll) {
+        if (now >= polls.progress) {
             UpdateProgressSnapshot();
-            nextProgressPoll = now + 0.25;
+            polls.progress = now + 0.25;
         }
-        if (!pollBusy && now >= nextPrivacyPoll) {
+        if (!pollBusy && now >= polls.privacy) {
             UpdatePrivacyIndicators();
             UpdateActiveCall();
-            nextPrivacyPoll = now + 2.0;  // poll every 2 s
+            polls.privacy = now + 2.0;  // poll every 2 s
         }
 
         bool timerJustCompleted = false;
@@ -25435,12 +25580,12 @@ DWORD WINAPI RenderThreadProc(void*) {
         const bool gameOverlayVisible = gameMetricsPresent && !isFullscreen;
         const bool systemMetricsVisible = hwMonitorVisible || gameOverlayVisible;
 
-        if (g_settings.brightness && !pollBusy && now >= nextBrightnessPoll) {
+        if (g_settings.brightness && !pollBusy && now >= polls.brightness) {
             UpdateBrightnessSnapshot();
-            nextBrightnessPoll = now + 0.25;
+            polls.brightness = now + 0.25;
         }
 
-        if (!pollBusy && now >= nextSystemPoll) {
+        if (!pollBusy && now >= polls.system) {
             const bool needGpuStats = gameOverlayVisible || hwMonitorVisible;
             const bool needNetStats = hwMonitorVisible;  // net is only ever drawn in the HW dashboard
 
@@ -25448,7 +25593,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             if (!g_endpointVolume) {
                 g_volumeEndpointStale = true;  // no audio device yet, or binding failed
             }
-            nextSystemPoll = now + 1.0;
+            polls.system = now + 1.0;
         }
 
         ApplyFrameActivitySizing(renderer, primary, secondary, tertiary, snapshot, frameSettings, now,
@@ -25878,7 +26023,9 @@ DWORD WINAPI RenderThreadProc(void*) {
                 !DwmBackdrop::Available()) {
                 renderSettings.backdropMaterial = BackdropMaterial::None;
             }
-            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,                            widthSpring.value, heightSpring.value, nudgeSpring.value,                            hover, pinned, now, combineClosing);
+            renderer.Render(snapshot, renderSettings, primary, secondary, tertiary,
+                            widthSpring.value, heightSpring.value, nudgeSpring.value,
+                            hover, pinned, now, combineClosing);
         }
 
         // --- Zero-CPU parking for auto-hidden states (idle timeout / fullscreen) ---
@@ -25897,7 +26044,7 @@ DWORD WINAPI RenderThreadProc(void*) {
             ShowWindow(hwnd, SW_HIDE);
             DwmBackdrop::HideAll();
             g_audioCaptureNeeded.store(false, std::memory_order_relaxed);
-            setHighResTimer(false);
+            highResTimer.set(false);
             continue;
         }
 
@@ -25952,10 +26099,7 @@ DWORD WINAPI RenderThreadProc(void*) {
         //
         // continuousAnimation and springsAnimating are exactly the two cases that
         // want precise frame spacing, so they drive it directly.
-        if (continuousAnimation || springsAnimating) {
-            lastAnimatingAt = now;
-        }
-        setHighResTimer(lastAnimatingAt >= 0.0 && now - lastAnimatingAt < kHighResTimerHoldSec);
+        highResTimer.update(continuousAnimation || springsAnimating, now, kHighResTimerHoldSec);
 
         if (!needsRender) {
             // Nothing changed on screen, so poll at ~60Hz rather than the target
@@ -25996,7 +26140,7 @@ DWORD WINAPI RenderThreadProc(void*) {
     }
 
     // Balances whichever state the loop exited in; a no-op if already released.
-    setHighResTimer(false);
+    highResTimer.set(false);
 
     UnbindVolumeEndpoint();
     DwmBackdrop::DestroyAll();
@@ -26004,10 +26148,6 @@ DWORD WINAPI RenderThreadProc(void*) {
     DestroyWindow(hwnd);
     g_hwnd = nullptr;
     UnregisterClassW(kWindowClass, wc.hInstance);
-
-    if (SUCCEEDED(hrCo)) {
-        CoUninitialize();
-    }
 
     return 0;
 }
@@ -26056,38 +26196,21 @@ void StopThreads() {
         SetEvent(g_stopEvent);
     }
 
-    HANDLE handles[] = {g_renderThread, g_mediaThread, g_audioThread, g_weatherThread, g_lyricsThread, g_notificationThread, g_keyboardThread, g_mouseThread, g_bluetoothThread};
-    for (HANDLE handle : handles) {
-        if (handle) {
-            WaitForSingleObject(handle, 3000);
-            CloseHandle(handle);
-        }
-    }
-
-    g_renderThread = nullptr;
-    g_mediaThread = nullptr;
-    g_audioThread = nullptr;
-    g_weatherThread = nullptr;
-    g_lyricsThread = nullptr;
-    g_notificationThread = nullptr;
-    g_keyboardThread = nullptr;
+    JoinWorkerThread(g_renderThread);
+    JoinWorkerThread(g_mediaThread);
+    JoinWorkerThread(g_audioThread);
+    JoinWorkerThread(g_weatherThread);
+    JoinWorkerThread(g_lyricsThread);
+    JoinWorkerThread(g_notificationThread);
+    JoinWorkerThread(g_keyboardThread);
     g_keyboardThreadId = 0;
-    g_mouseThread = nullptr;
+    JoinWorkerThread(g_mouseThread);
     g_mouseThreadId = 0;
-    g_bluetoothThread = nullptr;
+    JoinWorkerThread(g_bluetoothThread);
 
-    if (g_stopEvent) {
-        CloseHandle(g_stopEvent);
-        g_stopEvent = nullptr;
-    }
-    if (g_settingsChangedEvent) {
-        CloseHandle(g_settingsChangedEvent);
-        g_settingsChangedEvent = nullptr;
-    }
-    if (g_mediaRefreshEvent) {
-        CloseHandle(g_mediaRefreshEvent);
-        g_mediaRefreshEvent = nullptr;
-    }
+    CloseSyncEvent(g_stopEvent);
+    CloseSyncEvent(g_settingsChangedEvent);
+    CloseSyncEvent(g_mediaRefreshEvent);
 
     g_running = false;
 }
