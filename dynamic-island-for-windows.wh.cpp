@@ -3971,7 +3971,7 @@ void ClearAccent(Slot& s) {
     s.accentColor = 0;
 }
 
-HWND CreateBackdropWindow(HWND owner) {
+HWND CreateBackdropWindow(HWND /*owner*/) {
     HINSTANCE inst = GetModuleHandleW(nullptr);
     if (!g_classRegistered) {
         WNDCLASSEXW wc = {};
