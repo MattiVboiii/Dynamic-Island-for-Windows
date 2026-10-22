@@ -61,9 +61,9 @@ A smooth, interactive overlay for your desktop, inspired by Apple's Dynamic Isla
 **🚀 New Features (Added in Latest Update):**
 
 - 🎤 **Live Lyrics:** Switch on "Show lyrics on collapsed island" from the right-click menu to see the current line pan across the pill as it is sung.
-- 📖 **Quick Lookup:** Press `Ctrl+Alt+Space` to open a search box right on the island to instantly find definitions or summaries for words and clipboard text.
+- 📖 **Quick Lookup:** Once enabled under Modules, press `Ctrl+Alt+Space` to open a search box right on the island to instantly find definitions or summaries for words and clipboard text.
 - 🔀 **Cross-Source Media Switching:** Smoothly swap between active playback controls of multiple media apps simultaneously without opening the apps.
-- 💾 **Lyrics Cache:** Fast, local, and completely private caching of lyrics (via LRCLIB) to ensure instant loading with a tiny disk footprint.
+- 💾 **Lyrics Cache:** Fast, local caching of lyrics retrieved from LRCLIB (sending title, artist, album, and duration to look up matching tracks) stored in the mod's storage folder with a tiny disk footprint.
 - 📺 **Full-Screen Autohide:** Smart autohide ensures the island stays completely out of your way during full-screen apps, videos, and gaming.
 - 🙈 **Instant Hide/Unhide:** Toggle the island visibility instantly with a customizable shortcut (Default: `Ctrl+Alt+D`). It consumes almost no CPU while hidden!
 - 🕒 **Expandable Hover Clock:** Hover over the island to instantly expand a sleek clock displaying the current time and date.
@@ -113,8 +113,7 @@ Tweak the mod easily from the **Windhawk settings panel**:
 - **Clear Media When Paused:** Next to auto-hide under **Behavior & Visibility**. Drops a paused/stopped session back to the idle clock after a timeout; the island stays visible (auto-hide parks the whole UI).
 - **Volume & Brightness Flyouts:** Slider banners appear on the island when the system volume or your laptop screen brightness changes. Both can be switched off in **Modules & Features**.
 - **Modules & Visibility:** Configure media, dashboards, privacy dots, system flyouts, auto-hide idle behavior, and shortcuts.
-- **Process Inclusion (for Notifications):** To use the notification module, you must add `explorer.exe` to the process inclusion list under the **Advanced** tab of the mod settings in Windhawk, then restart the mod.
-- **Notification Permission (for Notifications):** Windows must also allow apps to read your notifications. Turn on **Settings → Privacy & security → Notifications → "Let apps access your notifications"**. If this is off, Windows denies the listener and no notification will reach the island no matter how the mod is configured. When notifications still don't show, check the mod's log in Windhawk for a "permission not granted" line.
+- **Notification Permission (for Notifications):** Windows must allow apps to read your notifications. Turn on **Settings → Privacy & security → Notifications → "Let apps access your notifications"**. If this is off, Windows denies the listener and no notification will reach the island no matter how the mod is configured. When notifications still don't show, check the mod's log in Windhawk for a "permission not granted" line. Note: notifications from command-line consoles and terminal hosts (PowerShell, cmd.exe, conhost) are filtered out by default to avoid toast spam from terminal scripts and build jobs.
 
 > [!NOTE]
 > **Blur & Acrylic need Windows' Transparency effects.**
