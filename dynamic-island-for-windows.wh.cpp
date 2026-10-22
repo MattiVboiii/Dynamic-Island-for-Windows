@@ -9486,6 +9486,15 @@ std::wstring DiscordTokenPath() {
     return dir.empty() ? std::wstring{} : dir + L"\\discord-rpc.json";
 }
 
+std::wstring DiscordLegacyTokenPath() {
+    wchar_t base[MAX_PATH] = {};
+    const DWORD n = GetEnvironmentVariableW(L"LOCALAPPDATA", base, ARRAYSIZE(base));
+    if (n == 0 || n >= ARRAYSIZE(base)) {
+        return {};
+    }
+    return std::wstring(base) + L"\\DynamicIslandForWindows\\discord-rpc.json";
+}
+
 bool ReadUtf8File(const std::wstring& path, std::string* out) {
     HANDLE h = CreateFileW(path.c_str(), GENERIC_READ, FILE_SHARE_READ, nullptr,
                            OPEN_EXISTING, FILE_ATTRIBUTE_NORMAL, nullptr);
@@ -9525,11 +9534,7 @@ bool WriteUtf8File(const std::wstring& path, const std::string& body) {
     return ok != FALSE;
 }
 
-bool LoadDiscordAccessToken(std::string* token) {
-    std::string body;
-    if (!ReadUtf8File(DiscordTokenPath(), &body)) {
-        return false;
-    }
+bool ParseDiscordAccessTokenBody(const std::string& body, std::string* token) {
     std::string raw;
     if (!ExtractJsonStringField(body, "access_token", &raw) || raw.empty()) {
         return false;
@@ -9546,6 +9551,22 @@ bool LoadDiscordAccessToken(std::string* token) {
     return !token->empty();
 }
 
+bool LoadDiscordAccessToken(std::string* token) {
+    std::string body;
+    if (ReadUtf8File(DiscordTokenPath(), &body) && ParseDiscordAccessTokenBody(body, token)) {
+        return true;
+    }
+    const std::wstring legacy = DiscordLegacyTokenPath();
+    if (legacy.empty() || !ReadUtf8File(legacy, &body) || !ParseDiscordAccessTokenBody(body, token)) {
+        return false;
+    }
+    if (WriteUtf8File(DiscordTokenPath(), body)) {
+        DeleteFileW(legacy.c_str());
+        Wh_Log(L"Discord RPC: migrated access token into mod storage");
+    }
+    return true;
+}
+
 void SaveDiscordAccessToken(const std::string& token) {
     std::string body = "{\"access_token\":\"";
     for (char c : token) {
@@ -9560,6 +9581,10 @@ void SaveDiscordAccessToken(const std::string& token) {
 
 void ClearDiscordAccessToken() {
     DeleteFileW(DiscordTokenPath().c_str());
+    const std::wstring legacy = DiscordLegacyTokenPath();
+    if (!legacy.empty()) {
+        DeleteFileW(legacy.c_str());
+    }
 }
 
 // Discord helpers reuse LyricsCache::WideToUtf8 / Utf8ToWide via local aliases.
