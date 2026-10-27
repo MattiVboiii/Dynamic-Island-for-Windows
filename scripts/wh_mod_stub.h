@@ -29,3 +29,9 @@ inline size_t Wh_GetStringValue(const wchar_t*, PWSTR buffer, size_t bufferChars
 inline void Wh_SetIntValue(const wchar_t*, int) {}
 inline void Wh_SetStringValue(const wchar_t*, PCWSTR) {}
 inline BOOL Wh_SetFunctionHook(void*, void*, void**) { return TRUE; }
+inline BOOL Wh_GetModStoragePath(PWSTR buffer, size_t bufferChars) {
+    if (buffer && bufferChars > 0) {
+        buffer[0] = L'\0';
+    }
+    return FALSE;
+}
