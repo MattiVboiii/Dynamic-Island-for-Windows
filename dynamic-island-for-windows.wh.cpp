@@ -2,7 +2,7 @@
 // @id              dynamic-island-for-windows
 // @name            Dynamic Island for Windows
 // @description     A living, breathing pill overlay inspired by iPhone's Dynamic Island. Reacts to media, downloads, clipboard, battery, and more.
-// @version         1.4.0
+// @version         1.4.1
 // @author          Himanshu
 // @github          https://github.com/devcode90
 // @include         windhawk.exe
@@ -3305,17 +3305,7 @@ void LoadSettings() {
         g_state.brightness.active = false;
         g_brightnessInitialized = false;
     }
-    next.clipboard = Wh_GetIntSetting(L"Modules.Clipboard") != 0;
 
-    next.battery = Wh_GetIntSetting(L"Modules.Battery") != 0;
-    next.progress = Wh_GetIntSetting(L"Modules.Progress") != 0;
-    next.capsLock = Wh_GetIntSetting(L"Modules.CapsLock") != 0;
-    next.timerEnabled = Wh_GetIntSetting(L"Modules.TimerModule") != 0;
-    next.discordVoice = Wh_GetIntSetting(L"Modules.DiscordVoice") != 0;
-    next.discordClientId = GetStringSettingCopy(L"Modules.DiscordClientId");
-    next.discordClientSecret = GetStringSettingCopy(L"Modules.DiscordClientSecret");
-
-    next.hideShowHotkeyEnabled = Wh_GetIntSetting(L"Shortcuts.HideShowHotkeyEnabled") != 0;
     const std::wstring hotkeyModStr = GetStringSettingCopy(L"Shortcuts.HideShowModifiers");
     if (EqualsNoCase(hotkeyModStr, L"ctrl_shift")) {
         next.hideShowModifiers = MOD_CONTROL | MOD_SHIFT;
@@ -10544,7 +10534,8 @@ void ApplyDiscordVoiceChannelJson(const std::string& dataJson, bool connected,
                                   const std::string& selfUserId = {}) {
     std::lock_guard lock(g_stateMutex);
     if (!connected || dataJson.empty() || dataJson == "null") {
-        ClearDiscordRpcCallLocked();        return;
+        ClearDiscordRpcCallLocked();
+        return;
     }
     std::string idRaw, nameRaw, guildIdRaw;
     ExtractJsonStringField(dataJson, "id", &idRaw);
@@ -10608,7 +10599,8 @@ void ApplyDiscordVoiceChannelJson(const std::string& dataJson, bool connected,
     if (!wasActive) {
         g_state.call.startedAt = NowSeconds();
     } else if (wideId != prevChannelId) {
-        g_state.call.startedAt = NowSeconds();    }
+        g_state.call.startedAt = NowSeconds();
+    }
 }
 
 void ApplyDiscordGuildJson(const std::string& dataJson) {
@@ -11091,12 +11083,18 @@ DWORD WINAPI DiscordRpcThreadProc(void*) {
     g_discordRpcConnected.store(false);
     g_discordRpcAuthenticated.store(false);
     CoUninitialize();
+    g_discordRpcThread = nullptr;
     return 0;
 }
 
 void StartDiscordRpcThread() {
     if (g_discordRpcThread) {
-        return;
+        DWORD exitCode = STILL_ACTIVE;
+        if (GetExitCodeThread(g_discordRpcThread, &exitCode) && exitCode == STILL_ACTIVE) {
+            return;
+        }
+        CloseHandle(g_discordRpcThread);
+        g_discordRpcThread = nullptr;
     }
     g_discordRpcStop.store(false);
     g_discordRpcThread = CreateThread(nullptr, 0, DiscordRpcThreadProc, nullptr, 0, nullptr);
@@ -11211,7 +11209,8 @@ void UpdateActiveCall() {
             if (g_state.call.guildName.empty()) {
                 g_state.call.guildName = L"Discord";
             }
-        }        return;
+        }
+        return;
     }
 
     // Fallback: Discord mic + non-loopback UDP → generic status card (no channel name).
