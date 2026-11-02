@@ -2,7 +2,7 @@
 // @id              dynamic-island-for-windows
 // @name            Dynamic Island for Windows
 // @description     A living, breathing pill overlay inspired by iPhone's Dynamic Island. Reacts to media, downloads, clipboard, battery, and more.
-// @version         1.4.1
+// @version         1.4.2
 // @author          Himanshu
 // @github          https://github.com/devcode90
 // @include         windhawk.exe
@@ -2781,6 +2781,26 @@ bool SettingBool(PCWSTR name) {
     return Wh_GetIntSetting(name) != 0;
 }
 
+// Windhawk returns 0 when a bool setting is missing or explicitly off. Broken
+// settings metadata (Oct 2025 discord merge) never registered Modules.DiscordVoice,
+// so reads stayed 0 and the module looked disabled with no Windhawk toggles.
+void SyncDiscordVoiceRuntimeMirror() {
+    const int fromWindhawk = Wh_GetIntSetting(L"Modules.DiscordVoice");
+    if (fromWindhawk != 0) {
+        Wh_SetIntValue(L"DiscordVoiceRuntime", 1);
+        Wh_SetIntValue(L"DiscordVoiceMirrorInitialized", 1);
+        return;
+    }
+    if (Wh_GetIntValue(L"DiscordVoiceMirrorInitialized", 0) == 0) {
+        Wh_SetIntValue(L"DiscordVoiceRuntime", 1);
+        Wh_SetIntValue(L"DiscordVoiceMirrorInitialized", 1);
+        Wh_Log(L"Discord Voice: enabled by default (Modules.DiscordVoice was missing or off "
+               L"before settings metadata was repaired — toggle in Windhawk to disable).");
+        return;
+    }
+    Wh_SetIntValue(L"DiscordVoiceRuntime", 0);
+}
+
 // Maps a settings dropdown string to a typed value. First matching id wins;
 // empty / unknown values fall through to `fallback`.
 template <typename T>
@@ -3166,6 +3186,8 @@ void ApplyLookupHotkey();  // forward declaration; defined with Quick Lookup
 // === Settings I/O ===
 void LoadSettings() {
     Settings next;
+    SyncDiscordVoiceRuntimeMirror();
+    next.discordVoice = Wh_GetIntValue(L"DiscordVoiceRuntime", 1) != 0;
 
     next.position = ParseEnumSettingKey<Position>(
         L"Appearance.Position",
@@ -3291,7 +3313,6 @@ void LoadSettings() {
         {&next.progress, L"Modules.Progress"},
         {&next.capsLock, L"Modules.CapsLock"},
         {&next.timerEnabled, L"Modules.TimerModule"},
-        {&next.discordVoice, L"Modules.DiscordVoice"},
         {&next.hideShowHotkeyEnabled, L"Shortcuts.HideShowHotkeyEnabled"},
     });
     next.discordClientId = GetStringSettingCopy(L"Modules.DiscordClientId");
@@ -10110,30 +10131,41 @@ bool ProcessHasNonLoopbackUdp(DWORD pid) {
 }
 
 bool DiscordHeuristicVoiceActive(std::wstring* micAppName) {
-    std::wstring app;
-    if (!IsMicrophoneActive(&app)) {
-        return false;
-    }
-    std::wstring lower = app;
-    for (auto& ch : lower) {
-        ch = static_cast<wchar_t>(towlower(ch));
-    }
-    if (lower.find(L"discord") == std::wstring::npos) {
-        return false;
-    }
     std::vector<DWORD> pids;
     if (!FindDiscordProcessIds(&pids)) {
         return false;
     }
+    bool voiceUdp = false;
     for (DWORD pid : pids) {
         if (ProcessHasNonLoopbackUdp(pid)) {
+            voiceUdp = true;
+            break;
+        }
+    }
+    if (!voiceUdp) {
+        return false;
+    }
+
+    // Prefer the mic privacy label when Discord is the active capture app.
+    std::wstring app;
+    if (IsMicrophoneActive(&app)) {
+        std::wstring lower = app;
+        for (auto& ch : lower) {
+            ch = static_cast<wchar_t>(towlower(ch));
+        }
+        if (lower.find(L"discord") != std::wstring::npos) {
             if (micAppName) {
                 *micAppName = app.empty() ? L"Discord" : app;
             }
             return true;
         }
     }
-    return false;
+
+    // Voice channels keep UDP up while muted/deafened; do not require mic consent.
+    if (micAppName) {
+        *micAppName = L"Discord";
+    }
+    return true;
 }
 
 struct DiscordIpc {
